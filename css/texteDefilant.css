@@ -1,0 +1,40 @@
+
+/* 
+    Created on : 14 févr. 2026, 12:31:41
+    Author     : Alara
+*/
+ 
+/* le block conteneur */
+.marquee-rtl {
+  max-width: 100em;
+  margin: 1em auto 1em;
+  overflow: hidden;
+}
+.marquee-rtl > :first-child {
+  display: inline-block;      /* modéle de boîte en ligne */
+  padding-right: 2em;         /* un peu d'espace pour la transition */
+  padding-left: 100%;         /* placement à doite du conteneur */
+  white-space: nowrap;        /* pas de passage à la ligne */
+  animation: defilement-rtl 15s infinite linear;
+  will-change: transform;     /* optimise l'animation */
+  cursor: pointer;
+}
+.marquee-rtl:hover :first-child {
+  animation-play-state: paused;
+}
+.msg {
+  font-size: 1.2em;
+  line-height: 3em;
+}
+.msg:first-letter {
+  font-weight: 700;
+  color: #F00;
+}
+@keyframes defilement-rtl {
+  0% {
+    transform: translate3d(0,0,0);
+  }
+  100% {
+    transform: translate3d(-100%,0,0);
+  }
+}

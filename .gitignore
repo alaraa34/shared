@@ -1,0 +1,15 @@
+# --- Configuration et identifiants (jamais dans git)
+.env
+
+# --- NetBeans : réglages propres à ton poste
+/nbproject/private/
+
+# --- Composer
+/vendor/
+
+# --- Exports de base avec données
+*.sql
+
+# --- Divers Windows
+Thumbs.db
+desktop.ini
