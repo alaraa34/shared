@@ -48,6 +48,11 @@ class User extends Mere{
         return isset($_SESSION['LOGGED_USER']);
     }
     
+    public static function estAdministrateur():bool {
+    //indique si le user connecté est administrateur (colonne administrateur de la table user)
+        return self::userConnecte() && ($_SESSION['LOGGED_USER']['administrateur'] ?? false) === true;
+    }
+    
     public static function deconnecter(){
     //deconnexion du user si il est connecté
         if(self::userConnecte()){unset($_SESSION['LOGGED_USER']);}
@@ -94,14 +99,16 @@ class User extends Mere{
             self::passwordEnregistrer((int)$tableau['id'], $saisi);
         }
         //le mot de passe ne doit jamais rester dans l'instance ni en session
-        unset($tableau['password']);
+        $administrateur = (bool)$tableau['administrateur'];
+        unset($tableau['password'], $tableau['administrateur']);
         $this->loadfromarray($tableau);
         //nouvel identifiant de session à la connexion (évite la fixation de session)
         if (!headers_sent()){session_regenerate_id(true);}
         $_SESSION['LOGGED_USER'] = ['id'=>$this->id,
                                     'abrev'=>$this->abrev,
                                     'prenom'=>$this->prenom,
-                                    'avatar'=>$this->avatar];
+                                    'avatar'=>$this->avatar,
+                                    'administrateur'=>$administrateur];
         return true;
     }
 
@@ -110,28 +117,13 @@ class User extends Mere{
         return Model::mdUpdate(self::TABLE, ['password'=>password_hash($motDePasse, PASSWORD_DEFAULT)], "id=" . $idUser);
     }
 
-    public static function passwordMigrerEnHash():int{
-    //MIGRATION UNIQUE : remplace les mots de passe encore en clair par leur hash.
-    //Sans effet sur un mot de passe déjà hashé, donc sans risque si elle est relancée.
-    //Retourne le nombre de mots de passe convertis. A supprimer une fois la production migrée.
-        $users = Model::mdRequeteLister("SELECT id, password FROM " . self::TABLE . " WHERE password IS NOT NULL AND password <> ''");
-        $nombre = 0;
-        foreach ($users as $user){
-            if (password_get_info((string)$user['password'])['algo'] === null
-                    && self::passwordEnregistrer((int)$user['id'], (string)$user['password'])){
-                $nombre++;
-            }
-        }
-        return $nombre;
-    }
-
     //************************************************************************************************
     //MODELE 
     //************************************************************************************************      
  
     private function rechercheUsr() :array{
         //Retourne le détail d'un user à partir de son pseudo (le mot de passe est vérifié en PHP)
-        $requete = "SELECT ID as id,abrev,pseudo,password,nom,prenom,avatar
+        $requete = "SELECT ID as id,abrev,pseudo,password,nom,prenom,avatar,administrateur
                      FROM " . self::TABLE . " as user 
                      WHERE pseudo = ?;";
          return Model::mdRequeteListerUnique($requete ,[$this->pseudo]);
