@@ -82,16 +82,14 @@ class User extends Mere{
     }  
     
     public  function isValid($pseudo,$password) :bool{
-    //teste si le user donne les bons renseignements de connexion
-    //Les mots de passe sont stockés hashés (password_hash). Un mot de passe encore en clair
-    //(ancienne base) est accepté une dernière fois puis converti automatiquement en hash.
+    //teste si le user donne les bons renseignements de connexion (mot de passe stocké hashé)
         $this->pseudo = (string)$pseudo;
         $saisi = (string)$password;
         $tableau = $this->rechercheUsr();
-        if (count($tableau)===0 || !self::passwordVerifier($saisi, (string)$tableau['password'])){
+        if (count($tableau)===0 || !password_verify($saisi, (string)$tableau['password'])){
             return false;
         }
-        //mise à niveau du stockage : hash si encore en clair, ou algorithme plus récent disponible
+        //si PHP propose un algorithme plus récent, le hash est régénéré
         if (password_needs_rehash((string)$tableau['password'], PASSWORD_DEFAULT)){
             self::passwordEnregistrer((int)$tableau['id'], $saisi);
         }
@@ -107,28 +105,24 @@ class User extends Mere{
         return true;
     }
 
-    public static function passwordVerifier(string $saisi, string $stocke):bool{
-    //vérifie un mot de passe saisi contre la valeur stockée (hash, ou texte clair pour les anciennes bases)
-        if ($stocke === ''){return false;}
-        if (password_get_info($stocke)['algo'] !== null){
-            return password_verify($saisi, $stocke);
-        }
-        //ancienne valeur en clair : comparaison à temps constant
-        return hash_equals($stocke, $saisi);
+    public static function passwordEnregistrer(int $idUser, string $motDePasse):bool{
+    //enregistre le hash d'un mot de passe (création ou changement de mot de passe)
+        return Model::mdUpdate(self::TABLE, ['password'=>password_hash($motDePasse, PASSWORD_DEFAULT)], "id=" . $idUser);
     }
 
-    public static function passwordEnregistrer(int $idUser, string $motDePasse):bool{
-    //enregistre le hash d'un mot de passe (création, changement ou conversion d'un ancien mot de passe)
-    //ne fait rien si la colonne password est trop courte pour un hash : sinon le hash serait tronqué
-    //et le user ne pourrait plus se connecter. Voir le script SQL de migration.
-        if (!self::mdColonnePasswordAssezLongue()){return false;}
-        try {
-            return Model::mdUpdate(self::TABLE, ['password'=>password_hash($motDePasse, PASSWORD_DEFAULT)], "id=" . $idUser);
-        } catch (\Throwable $e) {
-            //l'échec de la conversion ne doit pas empêcher la connexion
-            error_log("User::passwordEnregistrer : " . $e->getMessage());
-            return false;
+    public static function passwordMigrerEnHash():int{
+    //MIGRATION UNIQUE : remplace les mots de passe encore en clair par leur hash.
+    //Sans effet sur un mot de passe déjà hashé, donc sans risque si elle est relancée.
+    //Retourne le nombre de mots de passe convertis. A supprimer une fois la production migrée.
+        $users = Model::mdRequeteLister("SELECT id, password FROM " . self::TABLE . " WHERE password IS NOT NULL AND password <> ''");
+        $nombre = 0;
+        foreach ($users as $user){
+            if (password_get_info((string)$user['password'])['algo'] === null
+                    && self::passwordEnregistrer((int)$user['id'], (string)$user['password'])){
+                $nombre++;
+            }
         }
+        return $nombre;
     }
 
     //************************************************************************************************
@@ -141,15 +135,6 @@ class User extends Mere{
                      FROM " . self::TABLE . " as user 
                      WHERE pseudo = ?;";
          return Model::mdRequeteListerUnique($requete ,[$this->pseudo]);
-    }
-
-    private static function mdColonnePasswordAssezLongue() :bool{
-        //true si la colonne password peut contenir un hash (60 caractères minimum, 255 recommandé)
-        $requete = "SELECT CHARACTER_MAXIMUM_LENGTH as longueur
-                     FROM information_schema.COLUMNS
-                     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = 'password';";
-        $infos = Model::mdRequeteListerUnique($requete, [self::TABLE]);
-        return isset($infos['longueur']) && (int)$infos['longueur'] >= 60;
     }
 }
 
