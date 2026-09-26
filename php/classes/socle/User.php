@@ -83,31 +83,73 @@ class User extends Mere{
     
     public  function isValid($pseudo,$password) :bool{
     //teste si le user donne les bons renseignements de connexion
-        $this->pseudo = $pseudo;
-        $this->password= $password;
-        $tableau = $this->rechercheUsrPwd();
-        if (count($tableau)===0){
+    //Les mots de passe sont stockés hashés (password_hash). Un mot de passe encore en clair
+    //(ancienne base) est accepté une dernière fois puis converti automatiquement en hash.
+        $this->pseudo = (string)$pseudo;
+        $saisi = (string)$password;
+        $tableau = $this->rechercheUsr();
+        if (count($tableau)===0 || !self::passwordVerifier($saisi, (string)$tableau['password'])){
             return false;
         }
-        else{
-            $this->loadfromarray($tableau);
-            $_SESSION['LOGGED_USER'] = ['id'=>$this->id,
-                                        'abrev'=>$this->abrev,
-                                        'prenom'=>$this->prenom,
-                                        'avatar'=>$this->avatar];  
-            return true;
-        } 
+        //mise à niveau du stockage : hash si encore en clair, ou algorithme plus récent disponible
+        if (password_needs_rehash((string)$tableau['password'], PASSWORD_DEFAULT)){
+            self::passwordEnregistrer((int)$tableau['id'], $saisi);
+        }
+        //le mot de passe ne doit jamais rester dans l'instance ni en session
+        unset($tableau['password']);
+        $this->loadfromarray($tableau);
+        //nouvel identifiant de session à la connexion (évite la fixation de session)
+        if (!headers_sent()){session_regenerate_id(true);}
+        $_SESSION['LOGGED_USER'] = ['id'=>$this->id,
+                                    'abrev'=>$this->abrev,
+                                    'prenom'=>$this->prenom,
+                                    'avatar'=>$this->avatar];
+        return true;
     }
+
+    public static function passwordVerifier(string $saisi, string $stocke):bool{
+    //vérifie un mot de passe saisi contre la valeur stockée (hash, ou texte clair pour les anciennes bases)
+        if ($stocke === ''){return false;}
+        if (password_get_info($stocke)['algo'] !== null){
+            return password_verify($saisi, $stocke);
+        }
+        //ancienne valeur en clair : comparaison à temps constant
+        return hash_equals($stocke, $saisi);
+    }
+
+    public static function passwordEnregistrer(int $idUser, string $motDePasse):bool{
+    //enregistre le hash d'un mot de passe (création, changement ou conversion d'un ancien mot de passe)
+    //ne fait rien si la colonne password est trop courte pour un hash : sinon le hash serait tronqué
+    //et le user ne pourrait plus se connecter. Voir le script SQL de migration.
+        if (!self::mdColonnePasswordAssezLongue()){return false;}
+        try {
+            return Model::mdUpdate(self::TABLE, ['password'=>password_hash($motDePasse, PASSWORD_DEFAULT)], "id=" . $idUser);
+        } catch (\Throwable $e) {
+            //l'échec de la conversion ne doit pas empêcher la connexion
+            error_log("User::passwordEnregistrer : " . $e->getMessage());
+            return false;
+        }
+    }
+
     //************************************************************************************************
     //MODELE 
     //************************************************************************************************      
  
-    private function rechercheUsrPwd() :array{
-        //Retourne le détail d'un user à partir de sonid, identifiant, abrev
+    private function rechercheUsr() :array{
+        //Retourne le détail d'un user à partir de son pseudo (le mot de passe est vérifié en PHP)
         $requete = "SELECT ID as id,abrev,pseudo,password,nom,prenom,avatar
                      FROM " . self::TABLE . " as user 
-                     WHERE pseudo = ? AND password=?;";
-         return Model::mdRequeteListerUnique($requete ,[$this->pseudo,$this->password]);
-    }   
+                     WHERE pseudo = ?;";
+         return Model::mdRequeteListerUnique($requete ,[$this->pseudo]);
+    }
+
+    private static function mdColonnePasswordAssezLongue() :bool{
+        //true si la colonne password peut contenir un hash (60 caractères minimum, 255 recommandé)
+        $requete = "SELECT CHARACTER_MAXIMUM_LENGTH as longueur
+                     FROM information_schema.COLUMNS
+                     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = 'password';";
+        $infos = Model::mdRequeteListerUnique($requete, [self::TABLE]);
+        return isset($infos['longueur']) && (int)$infos['longueur'] >= 60;
+    }
 }
 
