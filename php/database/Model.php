@@ -159,27 +159,21 @@ class Model {
     public static function mdClauseIn(array $valeurs, bool $forcer = false):string {
     // formatte une clause In à partir d'un tableau
     //forcer retourne une clause in même si un seul item (au cas où not devant)
-        if(count($valeurs)==1 and !$forcer){
-            if (is_numeric($valeurs[0])){
-                $retour = "=" . $valeurs[0];
-            }
-            else{
-                $retour = "='" . $valeurs[0] . "'";
-            }
+    //les nombres sont insérés tels quels, les textes sont échappés par PDO (protection injection SQL)
+        $valeurs = array_values($valeurs);
+        if (count($valeurs) === 0){
+            //liste vide : condition toujours fausse au lieu d'une erreur SQL
+            return "IN(NULL)";
         }
-        else{
-            $retour = "IN(" . $valeurs[0];
-            for($i=1;$i<count($valeurs);$i++){
-                if (is_numeric($valeurs[$i])){
-                    $retour .= "," . $valeurs[$i];
-                }
-                else{
-                    $retour .= ", '" . $valeurs[$i] . "'";
-                }
-            }
-            $retour .= ")";
+        $formatees = array_map(
+            fn($valeur) => is_int($valeur) || is_float($valeur) || (is_string($valeur) && is_numeric($valeur))
+                ? (string)(0 + $valeur)
+                : Database::dbConnect()->quote((string)$valeur),
+            $valeurs);
+        if (count($formatees) === 1 && !$forcer){
+            return "=" . $formatees[0];
         }
-        return $retour;
+        return "IN(" . implode(",", $formatees) . ")";
     }
 
     public static function mdClauseFromJoin(array $tables){
@@ -231,7 +225,7 @@ class Model {
     
     public static function mdRequeteExecuterParamPositionnel( string $requete, array $zones=[]){
     //exemple requete WHERE  lien.idTypeLien= ? AND setlist_detail.idSetlist = ?  et appel Model::mdRequeteLister($requete,[$idTypeLien, $idSetList]);
-            return self::mdRequetePreparer($requete,$parametres);
+            return self::mdRequetePreparer($requete,$zones);
     }
 
     public static function mdRequeteListerZoneUnique(string $requete, string $zone, array $parametres =[]) {

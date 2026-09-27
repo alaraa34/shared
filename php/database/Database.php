@@ -58,7 +58,9 @@ final class Database
             $envirSafe = $envir;
             $envirSafe[4] = '***';
 
-            die('Erreur dbConnect: ' . $e->getMessage() . ' Paramètres envir ' . serialize($envirSafe));
+            // détail dans le log PHP seulement : l'écran ne doit rien révéler de la configuration
+            error_log('Erreur dbConnect: ' . $e->getMessage() . ' Paramètres envir ' . serialize($envirSafe));
+            die('Erreur de connexion à la base de données, voir Log PHP');
         }
 
         return self::$pdo;
@@ -83,14 +85,16 @@ final class Database
 
             if (count($envir) !== 6) {
                 unset($_SESSION[self::SESSION_ENVIR]);
-                die('Contenu incorrect du fichier ENVIR : ' . $fichier);
+                // ne jamais afficher le contenu du fichier : il contient le mot de passe
+                die('Contenu incorrect du fichier ENVIR (6 valeurs séparées par ; attendues)');
             }
 
             $_SESSION[self::SESSION_ENVIR] = $envir;
 
             return $envir;
-        } catch (Exception $e) {
-            die('Erreur : ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            error_log('Erreur mdGetENVIR : ' . $e->getMessage());
+            die('Erreur lors de la lecture de la configuration, voir Log PHP');
         }
     }
 }

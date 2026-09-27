@@ -136,7 +136,7 @@ class Toolbox {
         $retour="";
         if ($tdt){
             foreach ($tableauAssociatif as $key ) {
-                $retour .= listerTableau($key,"itération",false) ;
+                $retour .= self::listerTableau($key,"itération",false) ;
             }
         }
         else {
