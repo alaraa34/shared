@@ -5,7 +5,7 @@ namespace shared\php\database;
  * 
  * @package Shared\Database
  */
-use shared\php\toolbox\Toolbox_adressage as TbAdressage;
+use shared\php\toolbox\Toolbox_adressage    as TbAdressage;
 
 final class Database
 {

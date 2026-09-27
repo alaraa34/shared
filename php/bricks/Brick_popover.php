@@ -7,7 +7,7 @@ namespace shared\php\bricks;
  *
  * @author Alara
  */
-use shared\php\toolbox\Toolbox as Tbx;
+use shared\php\toolbox\Toolbox    as Tbx;
 
 class Brick_popover {
     private string $titre="";

@@ -7,9 +7,9 @@ namespace shared\php\bricks;
  *
  * @author Alara
  */
-use shared\php\database\Model as Model;
-use shared\php\database\Model_utils as ModelU;
-use shared\php\toolbox\Toolbox as Tbx;
+use shared\php\database\Model          as Model;
+use shared\php\database\Model_utils    as ModelU;
+use shared\php\toolbox\Toolbox         as Tbx;
 
 class Brick_sql {
     public readonly string $myHtml;

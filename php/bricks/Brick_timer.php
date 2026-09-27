@@ -7,7 +7,7 @@ namespace shared\php\bricks;
   * @author Alara
  */
 
-use shared\php\toolbox\Toolbox_date as TbDate;
+use shared\php\toolbox\Toolbox_date    as TbDate;
 
 class Brick_timer {
     //put your code here

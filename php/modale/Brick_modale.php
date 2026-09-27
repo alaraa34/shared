@@ -6,7 +6,7 @@ namespace shared\php\modale;
  * Description of Blick_modale
  ******************************************************************************/
 
-use shared\php\toolbox\Toolbox_adressage as TbAdressage;
+use shared\php\toolbox\Toolbox_adressage    as TbAdressage;
 
 class Brick_modale {
     private array $action=[];

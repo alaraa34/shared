@@ -4,8 +4,8 @@ namespace shared\php\toolbox;
 /*******************************************************************************
  * Fonction outillage divers
  *******************************************************************************/
-use shared\php\classes\socle\Menu as Menu;
-use shared\php\database\Database as Database;
+use shared\php\classes\socle\Menu    as Menu;
+use shared\php\database\Database     as Database;
 
 class Toolbox_index {
     

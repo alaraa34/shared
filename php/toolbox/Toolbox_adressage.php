@@ -4,10 +4,9 @@ namespace shared\php\toolbox;
 /*******************************************************************************
  * OUTILS SUR VARIABLES GLOBALES ET ADRESSAGE
  *******************************************************************************/
-use shared\php\classes\socle\Menu as Menu;
-use shared\php\classes\personalisation\Nomenclature as Nomenclature;
-use shared\php\database\Model as Model;
-use shared\php\database\Database as Database;
+use shared\php\classes\socle\Menu                      as Menu;
+use shared\php\classes\personalisation\Nomenclature    as Nomenclature;
+use shared\php\database\Database                       as Database;
 
 class Toolbox_adressage {
     public static function isDeveloppement(){

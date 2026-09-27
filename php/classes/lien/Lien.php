@@ -5,12 +5,12 @@ declare(strict_types=1);
  ******************************************************************************/
 namespace shared\php\classes\lien;
 
-use shared\php\database\Model as Model;
-use shared\php\database\Model_utils as ModelU;
-use shared\php\classes\socle\User as User;
-use shared\php\toolbox\Toolbox_classe as TbClasse;
-use shared\php\toolbox\Toolbox_adressage as TbAdressage;
-use shared\php\toolbox\Toolbox_upload as TbUpload;
+use shared\php\database\Model               as Model;
+use shared\php\database\Model_utils         as ModelU;
+use shared\php\classes\socle\User           as User;
+use shared\php\toolbox\Toolbox_classe       as TbClasse;
+use shared\php\toolbox\Toolbox_adressage    as TbAdressage;
+use shared\php\toolbox\Toolbox_upload       as TbUpload;
 
 class Lien
 {

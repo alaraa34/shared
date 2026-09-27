@@ -6,8 +6,8 @@ namespace shared\php\classes\socle;
  * le menu et composé à partir de la table menu. Dutant une session il est stocké dans une variable de session $_SESSION['menu'])
  * cette variable est détruite si l'utilisateur se déconnecte
  ********************************************************************************/
-use shared\php\toolbox\Toolbox_adressage as TbAdressage;
-use shared\php\database\Model as Model;
+use shared\php\toolbox\Toolbox_adressage    as TbAdressage;
+use shared\php\database\Model               as Model;
 
 class Menu {
   

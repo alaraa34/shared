@@ -7,9 +7,9 @@ declare(strict_types=1);
  */
 namespace shared\php\classes\socle;
 
-use shared\php\toolbox\Toolbox_classe as tbClasse;
-use shared\php\database\Model as Model;
-use shared\php\database\Model_utils as ModelU;
+use shared\php\toolbox\Toolbox_classe    as tbClasse;
+use shared\php\database\Model            as Model;
+use shared\php\database\Model_utils      as ModelU;
 
 
 abstract class Mere_ass {

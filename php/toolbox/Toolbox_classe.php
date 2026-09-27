@@ -5,7 +5,7 @@ namespace shared\php\toolbox;
  * 
  *******************************************************************************/
 
-use shared\php\database\Model as Model;
+use shared\php\database\Model    as Model;
 
 class Toolbox_classe {
     

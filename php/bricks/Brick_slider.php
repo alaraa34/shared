@@ -6,9 +6,8 @@ namespace shared\php\bricks;
  * $sliders = Model::mdRequeteLister( \"select * from slider where numero = ?\",[$identifiant]);?>
  *******************************************************************************/
 
-use shared\php\classes\telechargement\Telechargement as  Telechargement;
-use shared\php\toolbox\Toolbox as Tbx;
-use shared\php\database\model as Model;
+use shared\php\toolbox\Toolbox    as Tbx;
+use shared\php\database\model     as Model;
 
 class Brick_slider {
     // Attributs

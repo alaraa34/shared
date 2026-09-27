@@ -23,7 +23,7 @@ namespace shared\php\bricks;
  * Utiliser setTexte pour initialiser avec un texte existant
  ******************************************************************************/
 
-use shared\php\toolbox\Toolbox_adressage as TbAdressage;
+use shared\php\toolbox\Toolbox_adressage    as TbAdressage;
 
 class Brick_textbox {
     private bool $infos = false;

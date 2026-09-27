@@ -7,7 +7,7 @@ namespace shared\php\database;
  * @author araib
  ******************************************************************************/
 use PDO;
-use shared\php\toolbox\Toolbox as Tbx;
+use shared\php\toolbox\Toolbox    as Tbx;
 
 class Model {
     

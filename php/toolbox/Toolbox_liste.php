@@ -15,10 +15,10 @@ namespace shared\php\toolbox;
 //Actions = actions à déclencher
  *******************************************************************************/
 
-use shared\php\bricks\Brick_table                   as BkTable ;
-use shared\php\modale\Toolbox_modal                 as TbModal;
-use shared\php\Toolbox\Toolbox_date                 as TbDate;
-use shared\php\classes\personalisation\Nomenclature as Nomenclature;
+use shared\php\bricks\Brick_table                      as BkTable;
+use shared\php\modale\Toolbox_modal                    as TbModal;
+use shared\php\Toolbox\Toolbox_date                    as TbDate;
+use shared\php\classes\personalisation\Nomenclature    as Nomenclature;
 
 class Toolbox_liste {
     /***************************************************************************

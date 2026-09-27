@@ -4,8 +4,6 @@
  ******************************************************************************/
 namespace shared\php\classes\lien;
 
-use shared\php\toolbox\Toolbox_classe as tbClasse;
-use shared\php\database\Model as Model;
 
 class TypeLienUsage_ass
 {

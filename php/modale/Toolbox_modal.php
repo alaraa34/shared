@@ -43,7 +43,7 @@ namespace shared\php\modale;
  * l'identifiant de l'occurence
  
  */
-use shared\php\toolbox\Toolbox_adressage as TbAdressage;
+use shared\php\toolbox\Toolbox_adressage    as TbAdressage;
 
 class Toolbox_modal {
     

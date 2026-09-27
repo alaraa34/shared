@@ -9,10 +9,10 @@ NOUVEAU > la liste des domaines est alimentée par tous les domaines.
     afficher la liste des téléchargements faits sur le répertoire choisi (action GetTeleExistants définie dans telechargement::selectBoutonRepertoire
 ANCIEN seules valeurs libellé du raccourci et pr
  * */
-use shared\php\toolbox\Toolbox_liste as TbListe;
-use shared\php\toolbox\Toolbox_html as TbHtml;
-use shared\php\classes\lien\Lienhtml as Lienhtml;
-use shared\php\toolbox\Toolbox_adressage as TbAdressage;
+use shared\php\toolbox\Toolbox_liste        as TbListe;
+use shared\php\toolbox\Toolbox_html         as TbHtml;
+use shared\php\classes\lien\Lienhtml        as Lienhtml;
+use shared\php\toolbox\Toolbox_adressage    as TbAdressage;
 
 ob_start()
 ?>

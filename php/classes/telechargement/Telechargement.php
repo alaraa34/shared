@@ -4,19 +4,19 @@ namespace shared\php\classes\telechargement;
 /*******************************************************************************
  * Classe sur identifications
  ******************************************************************************/
-use shared\php\toolbox\Toolbox as Tbx;
-use shared\php\toolbox\Toolbox_classe as TbClasse;
-use shared\php\toolbox\Toolbox_upload as TbUpload;
-use shared\php\toolbox\Toolbox_adressage as TbAdressage;
-use shared\php\toolbox\Toolbox_liste as TbListe;
-use shared\php\database\Model as Model;
-use shared\php\classes\lien\Lien as Lien;
-use shared\php\classes\lien\TypeLien as TypeLien;
-use shared\php\classes\socle\Login as Login;
-use shared\php\classes\socle\Commentaire as Commentaire;
-use shared\php\classes\personalisation\Nomenclature as Nomenclature;
-use shared\php\classes\personalisation\Parametre as Parametre;
-use shared\php\classes\socle\Mere as Mere;
+use shared\php\toolbox\Toolbox                         as Tbx;
+use shared\php\toolbox\Toolbox_classe                  as TbClasse;
+use shared\php\toolbox\Toolbox_upload                  as TbUpload;
+use shared\php\toolbox\Toolbox_adressage               as TbAdressage;
+use shared\php\toolbox\Toolbox_liste                   as TbListe;
+use shared\php\database\Model                          as Model;
+use shared\php\classes\lien\Lien                       as Lien;
+use shared\php\classes\lien\TypeLien                   as TypeLien;
+use shared\php\classes\socle\Login                     as Login;
+use shared\php\classes\socle\Commentaire               as Commentaire;
+use shared\php\classes\personalisation\Nomenclature    as Nomenclature;
+use shared\php\classes\personalisation\Parametre       as Parametre;
+use shared\php\classes\socle\Mere                      as Mere;
 
 class Telechargement extends Mere
 {

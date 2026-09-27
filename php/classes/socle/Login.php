@@ -4,9 +4,9 @@ namespace shared\php\classes\socle;
 /*******************************************************************************
  * Classe sur identifications
  ******************************************************************************/
-use shared\php\toolbox\Toolbox_adressage as TbAdressage;
-use shared\php\toolbox\Toolbox as Tbx;
-use shared\php\classes\socle\User as User;
+use shared\php\toolbox\Toolbox_adressage    as TbAdressage;
+use shared\php\toolbox\Toolbox              as Tbx;
+use shared\php\classes\socle\User           as User;
 
 class Login{
     private static function getHtmlLogin(){

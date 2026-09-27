@@ -4,9 +4,9 @@
     /*******************************************************************************
      * Template de chargement des téléchargements d'un domaine
      ******************************************************************************/
-    use shared\php\bricks\Brick_accordion as BkAccordion;
-    use shared\php\modale\Toolbox_modal as TbModal;
-    use shared\php\classes\socle\User as User;
+    use shared\php\bricks\Brick_accordion    as BkAccordion;
+    use shared\php\modale\Toolbox_modal      as TbModal;
+    use shared\php\classes\socle\User        as User;
     
     ob_start(); 
     $numero = 0;

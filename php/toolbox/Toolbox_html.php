@@ -7,7 +7,7 @@ namespace shared\php\toolbox;
  * @author Alara
  */
 
-use shared\php\classes\personalisation\Nomenclature as Nomenclature;
+use shared\php\classes\personalisation\Nomenclature    as Nomenclature;
 
 class Toolbox_html {
         

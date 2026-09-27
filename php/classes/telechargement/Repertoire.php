@@ -5,9 +5,7 @@ namespace shared\php\classes\personalisation;
  *
  * @author araib
  */
-use \shared\php\database\Model as model;
-use shared\php\toolbox\Toolbox as Tbx;
-use shared\php\classes\socle\Mere as Mere;
+use shared\php\classes\socle\Mere    as Mere;
 
 class Repertoire extends Mere {
     public string $libelle="";

@@ -5,8 +5,8 @@ declare(strict_types=1);
  ******************************************************************************/
 namespace shared\php\classes\socle;
 
-use shared\php\database\Model as Model;
-use shared\php\toolbox\Toolbox_classe as tbClasse;
+use shared\php\database\Model            as Model;
+use shared\php\toolbox\Toolbox_classe    as tbClasse;
 
 class User extends Mere{
     public string $nom="";

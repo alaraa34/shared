@@ -5,9 +5,9 @@ namespace shared\php\classes\personalisation;
  *
  * @author araib
  */
-use \shared\php\database\Model as Model;
-use shared\php\toolbox\Toolbox as Tbx;
-use shared\php\classes\socle\Mere as Mere;
+use \shared\php\database\Model       as Model;
+use shared\php\toolbox\Toolbox       as Tbx;
+use shared\php\classes\socle\Mere    as Mere;
 
 abstract class Personalisation extends Mere {
     

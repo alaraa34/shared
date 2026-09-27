@@ -1,7 +1,7 @@
 <!--Modale standard -->
 <?php 
-      use shared\php\modale\Toolbox_modal as TbModal;
-      use shared\php\toolbox\Toolbox_adressage as TbAdressage;
+      use shared\php\modale\Toolbox_modal         as TbModal;
+      use shared\php\toolbox\Toolbox_adressage    as TbAdressage;
 ?>
 <div class="modal fade" id="<?= TbModal::modalGetNomDiv($action['modale'])?>" data-bs-backdrop="static" 
         data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true"> 

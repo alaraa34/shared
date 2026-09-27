@@ -11,10 +11,9 @@ namespace shared\php\toolbox;
 
  */
 
-use shared\php\classes\lien\Lien as Lien;
-use shared\php\classes\lien\TypeLien as TypeLien;
-use shared\php\classes\telechargement\Telechargement as Telechargement;
-use shared\php\classes\personalisation\Nomenclature as Nomenclature;
+use shared\php\classes\lien\TypeLien                    as TypeLien;
+use shared\php\classes\telechargement\Telechargement    as Telechargement;
+use shared\php\classes\personalisation\Nomenclature     as Nomenclature;
     
 class Toolbox_upload {
     

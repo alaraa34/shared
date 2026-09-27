@@ -5,9 +5,9 @@ declare(strict_types=1);
  *********************************************************************************/
 namespace shared\php\classes\lien;
 
-use shared\php\classes\socle\User as User;
-use shared\php\toolbox\Toolbox_liste as TbListe;
-use shared\php\modale\Toolbox_modal as TbModal;
+use shared\php\classes\socle\User       as User;
+use shared\php\toolbox\Toolbox_liste    as TbListe;
+use shared\php\modale\Toolbox_modal     as TbModal;
 
 class Lienhtml 
 {

@@ -6,7 +6,6 @@ namespace shared\php\database;
  * Implémente les fonctions utilitaires sql
  * @author araib
  ******************************************************************************/
-use PDO;
 class Model_utils {
     
     public const BETWEEN_VALEUR=1;

@@ -5,8 +5,8 @@ namespace shared\php\classes\personalisation;
  *
  * @author araib
  */
-use shared\php\toolbox\Toolbox_classe as TbClasse;
-use shared\php\database\Model as Model;
+use shared\php\toolbox\Toolbox_classe    as TbClasse;
+use shared\php\database\Model            as Model;
 
 class Parametre extends Personalisation {
     public string $groupe="";

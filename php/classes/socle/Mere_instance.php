@@ -9,9 +9,9 @@ declare(strict_types=1);
  *******************************************************************************/
 namespace shared\php\classes\socle;
 
-use shared\php\database\Model as Model;
-use shared\php\database\Model_utils as ModelU;
-use shared\php\toolbox\Toolbox_classe as TbClasse;
+use shared\php\database\Model            as Model;
+use shared\php\database\Model_utils      as ModelU;
+use shared\php\toolbox\Toolbox_classe    as TbClasse;
 
 abstract class Mere_instance {
     //------------------------------------------------------------------------------------------------

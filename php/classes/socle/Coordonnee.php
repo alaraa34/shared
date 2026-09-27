@@ -6,7 +6,7 @@ namespace shared\php\classes\socle;
  ******************************************************************************/
 
 
-use shared\php\classes\socle\Mere as Mere;
+use shared\php\classes\socle\Mere    as Mere;
 
 class Coordonnee extends Mere
 {
