@@ -7,6 +7,8 @@ namespace shared\php\classes\socle;
 
 use shared\php\database\Model            as Model;
 use shared\php\toolbox\Toolbox_classe    as tbClasse;
+use shared\php\database\Database         as Database;
+use shared\php\toolbox\Toolbox           as Tbx;
 
 class User extends Mere{
     public string $nom="";
@@ -14,6 +16,9 @@ class User extends Mere{
     public string $pseudo="";
     public string $abrev="";
     public string $avatar="";
+    public string $mail="";
+    public int $actif=1;                //1 : peut se connecter
+    public int $administrateur=0;       //1 : accès aux fonctions d'administration
     private string $password="";
     
     //Constantes
@@ -58,8 +63,21 @@ class User extends Mere{
         if(self::userConnecte()){unset($_SESSION['LOGGED_USER']);}
     }
     
-    public static function listeTous(){
-        return self::liste();
+    public static function listeTous():array{
+    //liste de tous les utilisateurs (sans le mot de passe)
+        $requete = "SELECT id, nom, prenom, abrev, pseudo, mail, actif, administrateur, avatar
+                    FROM " . self::TABLE . " ORDER BY nom, prenom;";
+        return Model::mdRequeteLister($requete);
+    }
+
+    public static function genererMotDePasse(int $longueur = 10):string{
+    //mot de passe aléatoire lisible (sans 0/O, 1/l/I) pour une création ou une réinitialisation
+        $caracteres = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789';
+        $motDePasse = '';
+        for ($i = 0; $i < $longueur; $i++) {
+            $motDePasse .= $caracteres[random_int(0, strlen($caracteres) - 1)];
+        }
+        return $motDePasse;
     }
        
     
@@ -110,6 +128,33 @@ class User extends Mere{
                                     'avatar'=>$this->avatar,
                                     'administrateur'=>$administrateur];
         return true;
+    }
+
+    public function enregistrer():bool{
+    //crée (id = 0) ou met à jour l'utilisateur, sans toucher au mot de passe (voir passwordEnregistrer)
+    //requête sans contrôle du nombre de lignes modifiées : enregistrer sans rien changer n'est pas une erreur
+        $zones = ['nom'=>$this->nom, 'prenom'=>$this->prenom, 'abrev'=>$this->abrev, 'pseudo'=>$this->pseudo,
+                  'mail'=>$this->mail, 'avatar'=>$this->avatar, 'actif'=>$this->actif, 'administrateur'=>$this->administrateur];
+        if ($this->id === 0){
+            $retour = Model::mdInsert(self::TABLE, $zones);
+            if ($retour){$this->id = (int)Database::dbConnect()->lastInsertId();}
+            return $retour;
+        }
+        $zones['id'] = $this->id;
+        $requete = "UPDATE " . self::TABLE . " SET " . Model::mdUpdateInsertRequeteZones(Tbx::oterDatas($zones, ['id'])) . " WHERE id=:id";
+        return Model::mdRequeteExecuter($requete, $zones);
+    }
+
+    public function controlerUnicite():string{
+    //vérifie que le pseudo et l'abréviation ne sont pas déjà utilisés par un autre utilisateur
+    //retourne un message d'erreur ou une chaine vide
+        $requete = "SELECT pseudo, abrev FROM " . self::TABLE . " WHERE (pseudo = ? OR abrev = ?) AND id <> ?;";
+        $doublons = Model::mdRequeteLister($requete, [$this->pseudo, $this->abrev, $this->id]);
+        foreach ($doublons as $doublon){
+            if (strcasecmp((string)$doublon['pseudo'], $this->pseudo) === 0){return "L'identifiant « " . $this->pseudo . " » est déjà utilisé.";}
+            if (strcasecmp((string)$doublon['abrev'], $this->abrev) === 0){return "L'abréviation « " . $this->abrev . " » est déjà utilisée.";}
+        }
+        return "";
     }
 
     public static function passwordEnregistrer(int $idUser, string $motDePasse):bool{
