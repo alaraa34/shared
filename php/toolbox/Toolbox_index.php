@@ -14,10 +14,10 @@ class Toolbox_index {
     //exemple Toolbox_index("theBand")
         define('PROJET', $projet);
         //nom de la fonction à appeler dans le controleur ex ctAfficherListe
-        $fonction = (string)filter_input(INPUT_GET, menu::FONCTION);
+        $fonction = (string)filter_input(INPUT_GET, Menu::FONCTION);
 
         //nom du controleur à charger ex accueil/ctAccueil
-        $controleur = (string)filter_input(INPUT_GET, menu::CONTROLEUR);
+        $controleur = (string)filter_input(INPUT_GET, Menu::CONTROLEUR);
 
         //Recherche de l'identifiant si il existe
         $identifiant = (int)filter_input(INPUT_GET, 'id');

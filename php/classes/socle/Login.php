@@ -32,7 +32,7 @@ class Login{
     public static function loginControl(string $namespace){
     //Si pas de user connecté affiche la page de connection, true sinon
     //exemple appel if (Login::loginControl(__NAMESPACE__)){require('tpSongDetail.php');}
-        if(!user::userConnecte()){
+        if(!User::userConnecte()){
             //user est connecté
             $content = Login::getHtmlLogin();
             //affiche page de layout

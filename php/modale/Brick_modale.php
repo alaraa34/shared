@@ -7,6 +7,7 @@ namespace shared\php\modale;
  ******************************************************************************/
 
 use shared\php\toolbox\Toolbox_adressage    as TbAdressage;
+use shared\php\modale\Toolbox_modal         as TbModal;
 
 class Brick_modale {
     private array $action=[];

@@ -77,7 +77,7 @@ class TypeLien
     }
     public function loadFromArrayAlias(array $infos,$alias=""):void{
     //Charge l'instance via un tableau de données avec alias
-        tbClasse::classeLoadFromArrayAndAlias($this,$infos, $alias);
+        TbClasse::classeLoadFromArrayAndAlias($this,$infos, $alias);
     }
     //------------------------------------------------------------------------------------------------
     //METIER

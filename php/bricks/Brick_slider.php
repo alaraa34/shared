@@ -7,7 +7,7 @@ namespace shared\php\bricks;
  *******************************************************************************/
 
 use shared\php\toolbox\Toolbox    as Tbx;
-use shared\php\database\model     as Model;
+use shared\php\database\Model     as Model;
 
 class Brick_slider {
     // Attributs

@@ -157,7 +157,7 @@ class Lien
     //affiche la case URL du tableau des URL pour le lien uinstancié
         $myhtml = '<a  ';
          //si classe 
-        if (tbClasse::classeAttributValorise($this->typeLien,"couleur")) {
+        if (TbClasse::classeAttributValorise($this->typeLien,"couleur")) {
             $myhtml.= 'class="' . $this->typeLien->couleur . '"';
         } 
         

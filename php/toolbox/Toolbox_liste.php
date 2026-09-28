@@ -17,7 +17,7 @@ namespace shared\php\toolbox;
 
 use shared\php\bricks\Brick_table                      as BkTable;
 use shared\php\modale\Toolbox_modal                    as TbModal;
-use shared\php\Toolbox\Toolbox_date                    as TbDate;
+use shared\php\toolbox\Toolbox_date                    as TbDate;
 use shared\php\classes\personalisation\Nomenclature    as Nomenclature;
 
 class Toolbox_liste {

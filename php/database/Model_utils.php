@@ -1,6 +1,8 @@
 <?php
 namespace shared\php\database;
 
+use shared\php\classes\socle\Commentaire    as Commentaire;
+
 /*******************************************************************************
  * Description of Model
  * Implémente les fonctions utilitaires sql

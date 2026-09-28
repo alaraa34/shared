@@ -77,8 +77,8 @@ class Lienhtml
     //initialise le début de la div avec une colonne description ou pas
         $myhtml = '<thead class="table-light table align-middle">
                     <tr hidden>
-                        <td><button type="hidden" id="listeExtensions" value="' . typelien::extensionsAutoriseesParTypes() . '"></td> 
-                        <td><button type="hidden" id="listeExternes" value="' . typelien::externes(). '"/><td>
+                        <td><button type="hidden" id="listeExtensions" value="' . TypeLien::extensionsAutoriseesParTypes() . '"></td> 
+                        <td><button type="hidden" id="listeExternes" value="' . TypeLien::externes(). '"/><td>
                     </tr>
                     <tr>
                         <th class="col-md-1 p-0 text-center no-gutters">';
@@ -101,7 +101,7 @@ class Lienhtml
     //En cas de modification du type de lien ou du contenu du lien, le js lienModification(ligne) est appelé 
     // en cas de suppression (clic sur poubelle) le lien lienSuppression  est appelé
         $myhtml = '<tr id="lien' . $indice .'"' ; 
-        if ($indice==lien::MODELE_LIGNE){$myhtml.= " hidden ";}
+        if ($indice==Lien::MODELE_LIGNE){$myhtml.= " hidden ";}
         $myhtml .= ">";
 
         // colonnes cachées avec Id du lien et action faite dessus apportée
@@ -225,19 +225,19 @@ class Lienhtml
 
     private static function initValueIdLien(int $indice,  $lien){
     //$lien est une instance de la classe lien
-        if ($indice == lien::MODELE_LIGNE){return 0;}
+        if ($indice == Lien::MODELE_LIGNE){return 0;}
         else {return $lien->id;}
     }
 
     private static function initValueDescriptionLien(int $indice,  $lien){
     //$lien est une instance de la classe lien
-        if ($indice == lien::MODELE_LIGNE){return "";}
+        if ($indice == Lien::MODELE_LIGNE){return "";}
         else {return $lien->description;}
     }
 
     private static function genererLigneLienInitValueListe(int $indice , array $typesLien, $lien){
     //affiche la liste des types de liens possibles ou la liste et le lien existant
-        if ($indice == lien::MODELE_LIGNE){return TbListe::valeursChoixListe($typesLien,true,"ID","nomAffiche");}
+        if ($indice == Lien::MODELE_LIGNE){return TbListe::valeursChoixListe($typesLien,true,"ID","nomAffiche");}
         else {return TbListe::valeursChoixListe($typesLien,true,"ID","nomAffiche", selected:$lien->typeLien->id);}
     }
 

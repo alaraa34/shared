@@ -43,7 +43,7 @@ class Telechargement extends Mere
     public function __construct(int $id=0) {
        parent::__construct($id);
         $this->commentaire = new Commentaire();
-        $this->lien = new lien();
+        $this->lien = new Lien();
         if ($id > 0){TbClasse::classeLoadFromId($this);}
     }
     //------------------------------------------------------------------------------------------------

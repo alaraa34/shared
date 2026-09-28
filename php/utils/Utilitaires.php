@@ -19,7 +19,7 @@ final class Utilitaires
             throw new FdjZipException('Extension PHP ZipArchive non disponible.');
         }
 
-        $zip    = new ZipArchive();
+        $zip    = new \ZipArchive();
         $result = $zip->open($zipPath);
 
         if ($result !== true) {
