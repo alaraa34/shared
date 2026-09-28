@@ -337,7 +337,7 @@ class Telechargement extends Mere
     // liste mles téléchargements d'un répetoire  
         $requete = "select te.id ,te.repertoire ,  co.texte as texteCommentaire, li.url, li.description,
                     lt.externe,lt.nomAffiche as typeFichier
-                from " . self::TABLE . " as te   INNER JOIN (" . Lien::TABLE . " as li INNER JOIN lien_type as lt ON li.idTypeLien=lt.id ) 
+                from " . self::TABLE . " as te   INNER JOIN (" . Lien::TABLE . " as li INNER JOIN " . TypeLien::TABLE . " as lt ON li.idTypeLien=lt.id ) 
                                             ON te.idLien  = li.id
                                             LEFT  JOIN " . Commentaire::TABLE . " as co ON te.idCommentaire=co.id
                 where te.Repertoire=?
