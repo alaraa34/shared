@@ -32,9 +32,13 @@ class Toolbox_html {
         return '<p><strong>Note : </strong>La taille maximale des fichiers téléchargés est de ' . ini_get("upload_max_filesize"). ".". $complement. '</p>';
     }
     
-    public static function htmlGenererRadio(string $groupeNomenclature, int $choix=0) :string{
-    //Génère du code Html pour afficher les boustons d'une nomenclature
-    //$choix si il y a un choix exprimé
+    public static function htmlGenererRadio(string $groupeNomenclature, int $choix=0, string $nomGroupe="") :string{
+    //Génère du code Html pour afficher les boutons d'une nomenclature
+    //$choix si il y a un choix exprimé (id du poste)
+    //$nomGroupe : attribut name commun à tous les radios du groupe (par défaut le groupe de nomenclature)
+    //tous les radios partagent le même name pour être mutuellement exclusifs ;
+    //la valeur postée est l'id du poste : (int)$_POST[$nomGroupe] peut être repassé en $choix
+        $name = $nomGroupe === "" ? $groupeNomenclature : $nomGroupe;
         $html = '<div class="input-group justify-content-left mb-3">';
         //boucle
         $tableau = Nomenclature::mdNomenclatureGetListe($groupeNomenclature,"*");
@@ -47,10 +51,10 @@ class Toolbox_html {
                 $checked = $poste['id']=== $choix ? "checked" : "";
             }
             $html .= '<div class="form-check px-5">';
-            $html .= '<input class="form-check-input " type="radio" name="'. $poste['nom'] . '" id="'. $poste['nom'] . '" '. $checked . '>';
-            $html .= '<label class="form-check-label " for="'. $poste['nom'] . '">';
+            $html .= '<input class="form-check-input" type="radio" name="'. $name . '" id="'. $poste['nom'] . '" value="'. $poste['id'] . '" '. $checked . '>';
+            $html .= '<label class="form-check-label" for="'. $poste['nom'] . '">';
             $html .= $poste['valeurA'] ;
-            $html .= '</label></input></div>';
+            $html .= '</label></div>';
         }
         $html .='</div>';
         return $html;

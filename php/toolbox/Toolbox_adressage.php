@@ -72,17 +72,10 @@ class Toolbox_adressage {
     }
     
     public static function getPostRadio(string $groupe):int{
-    //recherche si il existe un controle à on dans le post avec les nomenclature
-    //le name du controle soit être la valeur nom de la nomenclature
-        $retour =0;
-        $tableau = Nomenclature::mdNomenclatureGetListe($groupe, "nom");
-        foreach ($tableau as $nomenclature){
-            if (self::getPost("S", $nomenclature['zone'])=="on"){
-                $retour = $nomenclature['identifiant'];
-                break;
-            }
-        }
-        return $retour;
+    //retourne l'id du poste de nomenclature coché dans un groupe de radios
+    //généré par Toolbox_html::htmlGenererRadio (name = groupe, value = id du poste)
+    //0 si rien n'est coché
+        return (int)self::getPost("I", $groupe);
     }
     
     public static function getPost(string $type, string $nom) {
