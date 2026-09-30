@@ -41,31 +41,33 @@ abstract class Mere_instance {
     }
 
     public function update(int $idProprietaire) : bool {
-    //mise à jour de la BDD
-        //la classe collection doit avoir une constante CLE_EXTERNE
-        //mise à jour des classes comme commentaires qui sont liées 
-        TbClasse::classeUpdateClassesLiees($this);
-        
-        //Mise à jour de la table classe
-        if ($this->id === 0) {
-            //Id = 0 c'est un ajout
-           $retour = $this->add($idProprietaire);
-           if (!$retour){die ("Update " . get_class($this)  . ":  Erreur add 020");}
-        } 
-        else{
-            //id renseigné
-            $retour = Model::mdUpdate($this::TABLE, TbClasse::classeValeurProprietesAvecCleExterne($this,$idProprietaire), "ID=" . $this->id);
-            if (!$retour){die ("Update " . get_class($this)  . ": Erreur mise à jour 010");}
-        }
-        
-        return $retour;
+    //mise à jour de la BDD, en transaction avec les classes liées
+        return Model::mdTransaction(function () use ($idProprietaire) : bool {
+            //la classe collection doit avoir une constante CLE_EXTERNE
+            //mise à jour des classes comme commentaires qui sont liées 
+            TbClasse::classeUpdateClassesLiees($this);
+
+            //Mise à jour de la table classe
+            if ($this->id === 0) {
+                //Id = 0 c'est un ajout
+               $retour = $this->add($idProprietaire);
+               if (!$retour){die ("Update " . get_class($this)  . ":  Erreur add 020");}
+            } 
+            else{
+                //id renseigné
+                $retour = Model::mdUpdate($this::TABLE, TbClasse::classeValeurProprietesAvecCleExterne($this,$idProprietaire), "ID=" . $this->id);
+                if (!$retour){die ("Update " . get_class($this)  . ": Erreur mise à jour 010");}
+            }
+
+            return $retour;
+        });
     }
     
     public function delete() : bool {
     //Suppression   
         if ($this->id > 0) {
-            //Suppression de la classe et de ses liaisons include
-            return TbClasse::classeDelete($this);
+            //Suppression de la classe et de ses liaisons include, en transaction
+            return Model::mdTransaction(fn() : bool => TbClasse::classeDelete($this));
         }
         else{
             //Il peut y avoir un id à 0, par exemple si pas de commentaire, ce n'est donc pas une erreur

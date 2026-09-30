@@ -66,6 +66,66 @@ final class Database
         return self::$pdo;
     }
 
+    //--------------------------------------------------------------------------
+    // TRANSACTIONS (tables en InnoDB obligatoire : MyISAM ignore les transactions)
+    //--------------------------------------------------------------------------
+    /** Profondeur des transactions imbriquées : seule la plus externe ouvre et valide réellement. */
+    private static int $niveauTransaction = 0;
+
+    /**
+     * Exécute $traitement dans une transaction et renvoie son résultat.
+     * - tout est validé (commit) si $traitement se termine normalement ;
+     * - tout est annulé (rollback) si une exception est levée, erreur SQL comprise,
+     *   puis l'exception est relancée à l'appelant ;
+     * - un appel imbriqué rejoint la transaction en cours : un échec à l'intérieur annule l'ensemble.
+     * Attention : un retour false n'annule rien. Pour annuler sur un échec métier, lever une exception.
+     */
+    public static function mdTransaction(callable $traitement): mixed
+    {
+        $pdo = self::dbConnect();
+        if (self::$niveauTransaction === 0) {
+            // connexion persistante : on ne repart jamais d'une transaction restée ouverte
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            $pdo->beginTransaction();
+        }
+        self::$niveauTransaction++;
+
+        try {
+            $resultat = $traitement();
+        } catch (\Throwable $e) {
+            self::$niveauTransaction--;
+            if (self::$niveauTransaction === 0 && $pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $e;
+        }
+
+        self::$niveauTransaction--;
+        if (self::$niveauTransaction === 0) {
+            $pdo->commit();
+        }
+        return $resultat;
+    }
+
+    /**
+     * Même chose que mdTransaction, mais sans exception : à utiliser dans les contrôleurs,
+     * au niveau le plus externe uniquement.
+     * Renvoie true si la transaction est validée et que $traitement n'a pas renvoyé false,
+     * false si elle a été annulée (le détail de l'erreur va dans le log PHP, rien à l'écran).
+     */
+    public static function mdTransactionOk(callable $traitement, string $contexte = ''): bool
+    {
+        try {
+            return self::mdTransaction($traitement) !== false;
+        } catch (\Throwable $e) {
+            error_log('Transaction annulée ' . $contexte . ' : ' . $e->getMessage()
+                    . ' (' . $e->getFile() . ':' . $e->getLine() . ')');
+            return false;
+        }
+    }
+
     public static function mdGetENVIR(): array
     {
         try {

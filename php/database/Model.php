@@ -283,6 +283,21 @@ class Model {
         return $statement ;
     }
     
+    //--------------------------------------------------------------------------
+    // TRANSACTIONS : relais vers Database (voir le détail des règles là-bas)
+    //--------------------------------------------------------------------------
+    public static function mdTransaction(callable $traitement): mixed {
+    //exécute $traitement en transaction : commit si tout va bien, rollback et exception relancée sinon
+    //exemple : Model::mdTransaction(function () use ($seance) { ... });
+        return Database::mdTransaction($traitement);
+    }
+
+    public static function mdTransactionOk(callable $traitement, string $contexte = ''): bool {
+    //version contrôleur sans exception : true si validée, false si annulée (détail dans le log PHP)
+    //exemple : $retour = Model::mdTransactionOk(fn() => $palier->validerPalier(), "ctPalierValider");
+        return Database::mdTransactionOk($traitement, $contexte);
+    }
+
     public static function mdPrimaryIsAutoIncrement(string $table):bool{
         
         $requete ="SHOW COLUMNS FROM ". $table ." WHERE `Key` = 'PRI'";

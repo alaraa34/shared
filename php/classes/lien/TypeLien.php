@@ -20,7 +20,8 @@ class TypeLien
     public string $icone="";
     public bool $externe=true;
    
-    public const TABLE  = PREFIXE_BDD . "lien_type";
+    //table commune à toutes les applications (sans préfixe) : contenu de référence dans sh_lien_type.sql
+    public const TABLE  = "sh_lien_type";
     //types de lien
     public const MP3 = 1;
     public const MP4 = 29;
@@ -40,8 +41,15 @@ class TypeLien
     //------------------------------------------------------------------------------------------------
     //Méthodes statiques publiques
     //-----------------------------------------------------------------------------------------------
-    public static function listePourUnSujet(int $sujet, bool $retourIdSeul = false, string  $zoneSelect = "nomAffiche"){
+    public static function listePourUnSujet(string $sujet, bool $retourIdSeul = false, string  $zoneSelect = "nomAffiche"){
+    //types de lien admis pour un sujet : $sujet est la constante SUJET_LIEN de la classe qui demande les liens
         return self::mdTypesLiensListe($sujet,$retourIdSeul,$zoneSelect);
+    }
+
+    public static function listeTous():array{
+    //tous les types de lien, pour la grille de paramétrage des usages
+        $requete = "SELECT id, nom, nomAffiche, nomLong, externe, icone FROM " . self::TABLE . " ORDER BY nom;";
+        return Model::mdRequeteLister($requete);
     }
    
     public static function externes(){
@@ -93,29 +101,26 @@ class TypeLien
         return Model::mdRequeteListerUnique($requete, [$this->id]);
     }
    
-    private static function mdTypesLiensListe(int $usage, bool $retourIdSeul, string  $zoneSelect ):array {
-    //retourne un tableau des liens possible pour song,prospect,etablissement, répétition ou telechargement 
-    //usage = nom de la zone de la table (proposition, song...)
-    //Retour nom seul liste juste les types
+    private static function mdTypesLiensListe(string $sujet, bool $retourIdSeul, string  $zoneSelect ):array {
+    //retourne les types de lien admis pour un sujet (constante SUJET_LIEN de la classe demandeuse)
+    //Retour id seul liste juste les identifiants des types
         $requete = "SELECT lien_type.ID, " . $zoneSelect 
-                . " FROM " . self::TABLE . " as lien_type LEFT JOIN " . TypeLienUsage_ass::TABLE . " as lien_type_usage on lien_type.ID =lien_type_usage.idTypeLien "
-                . " WHERE saisie = true AND lien_type_usage.idUsage= " . $usage . " order by nomAffiche;";
+                . " FROM " . self::TABLE . " as lien_type INNER JOIN " . TypeLienUsage_ass::TABLE . " as lien_type_usage on lien_type.ID = lien_type_usage.idTypeLien "
+                . " WHERE lien_type_usage.sujet = ? order by nomAffiche;";
         if ($retourIdSeul) {
-            return Model::mdRequeteListerZoneUnique($requete, "ID");
+            return Model::mdRequeteListerZoneUnique($requete, "ID", [$sujet]);
         } else {
-            return Model::mdRequeteLister($requete);
+            return Model::mdRequeteLister($requete, [$sujet]);
         }
     }
     
-    public static function mdTypesLiensListePDF(int $usage):array {
-    //retourne un tableau des liens possible pour song
-    //usage = nom de la zone de la table (proposition, song...)
-    //Retour nom seul liste juste les types
+    public static function mdTypesLiensListePDF(string $sujet):array {
+    //retourne les types de lien PDF admis pour un sujet (constante SUJET_LIEN de la classe demandeuse)
         $requete = "SELECT lien_type.ID as identifiant, nomAffiche as zone
-                FROM " . self::TABLE . " as lien_type LEFT JOIN " . TypeLienUsage_ass::TABLE . " as lien_type_usage on lien_type.ID =lien_type_usage.idTypeLien 
-                WHERE extensions like '%pdf%'  AND lien_type_usage.idUsage=? order by nomAffiche;";
+                FROM " . self::TABLE . " as lien_type INNER JOIN " . TypeLienUsage_ass::TABLE . " as lien_type_usage on lien_type.ID = lien_type_usage.idTypeLien 
+                WHERE extensions like '%pdf%'  AND lien_type_usage.sujet = ? order by nomAffiche;";
        
-        return Model::mdRequeteLister($requete,[$usage]);
+        return Model::mdRequeteLister($requete,[$sujet]);
 }
     
    public function mdInfosDetail():array{

@@ -9,6 +9,8 @@
 
 # --- Exports de base avec données
 *.sql
+# sauf le contenu de référence de la table commune des types de lien
+!php/classes/lien/sh_lien_type.sql
 
 # --- Divers Windows
 Thumbs.db

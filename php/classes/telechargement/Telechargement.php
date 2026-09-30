@@ -31,8 +31,7 @@ class Telechargement extends Mere
     // Constantes
     public const string TABLE=  PREFIXE_BDD . "telechargement";
     public const array INCLUDE_CRUD =["commentaire","lien"];
-    public const int USAGE =77 ;  //usage pour le type de lien possible
-    public const int LIEN_SUJET = 77;
+    public const string SUJET_LIEN = "TELECHARGEMENT";   //types de lien admis : table <prefixe>lien_type_usage
     public const string REPERTOIRE = "telechargements/";
     public const string PARAMETRE_GROUPE = "TELECHARMT";  //groupe des paramèrtres téléchargement
     public const string PARAMETRE_NOM_DOMAINE = "DOMAINE"; //autorisation de créer des domaines
@@ -229,7 +228,7 @@ class Telechargement extends Mere
     //-----------------------------------------------------------------------------------------------
     public static function teleEditer(string $namespace,int $id = 0) {
     //edition $namespace est le NS de l'appli qui fait la demande
-        $typesLien = TypeLien::listePourUnSujet(Telechargement::LIEN_SUJET); // Types de liens admissible au téléchargement
+        $typesLien = TypeLien::listePourUnSujet(self::SUJET_LIEN); // Types de liens admissible au téléchargement
         $domaines = self::listeDomaines();
         $repertoires = self::listeRepertoires();
         $urlControleur = TbAdressage::urlControleur("telechargement","teleGetRepertoires");

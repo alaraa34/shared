@@ -42,32 +42,35 @@ abstract class Mere {
 
     public function update() : bool {
     //mise à jour de la BDD
-        //mise à jour des classes comme commentaires qui sont liées 
-        TbClasse::classeUpdateClassesLiees($this);
-        
-        //Mise à jour de la table classe
-        if ($this->id === 0) {
-            //Id = 0 c'est un ajout
-           $retour = $this->add();
-           if (!$retour){throw new \RuntimeException ("Update " . get_class($this)  . ":  Erreur add 020");}
-        } 
-        else{
-            //id renseigné, retour false si existe pas
-            $retour = Model::mdUpdate($this::TABLE,  $this->classeValeurProprietes(), "id=" . $this->id);
-            //if (!$retour){throw new \RuntimeException ("Update " . get_class($this)  . ": Erreur mise à jour 010, ID=".$this->id);}
-        }
-        
-        //mise à jour des collections après car besoin de l'ID de la classe mère
-        if($retour){$retour = TbClasse::classeUpdateCollection($this);}
-        
-        return $retour;
+    //en transaction : classes liées, table et collections sont enregistrées ensemble ou pas du tout
+        return Model::mdTransaction(function () : bool {
+            //mise à jour des classes comme commentaires qui sont liées 
+            TbClasse::classeUpdateClassesLiees($this);
+
+            //Mise à jour de la table classe
+            if ($this->id === 0) {
+                //Id = 0 c'est un ajout
+               $retour = $this->add();
+               if (!$retour){throw new \RuntimeException ("Update " . get_class($this)  . ":  Erreur add 020");}
+            } 
+            else{
+                //id renseigné, retour false si existe pas
+                $retour = Model::mdUpdate($this::TABLE,  $this->classeValeurProprietes(), "id=" . $this->id);
+                //if (!$retour){throw new \RuntimeException ("Update " . get_class($this)  . ": Erreur mise à jour 010, ID=".$this->id);}
+            }
+
+            //mise à jour des collections après car besoin de l'ID de la classe mère
+            if($retour){$retour = TbClasse::classeUpdateCollection($this);}
+
+            return $retour;
+        });
     }
     
     public function delete() : bool {
     //Suppression   
         if ($this->id > 0) {
-            //Suppression de la classe et de ses liaisons include
-            return TbClasse::classeDelete($this);
+            //Suppression de la classe et de ses liaisons include, en transaction
+            return Model::mdTransaction(fn() : bool => TbClasse::classeDelete($this));
         }
         else{
             //Il peut y avoir un id à 0, par exemple si pas de commentaire, ce n'est donc pas une erreur
