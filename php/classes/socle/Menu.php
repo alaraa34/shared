@@ -160,8 +160,12 @@ class Menu {
         if (!TbAdressage::isDeveloppement()){
             $requete .= " WHERE production = 1 " ;
         }
+        if (!User::estAdministrateur()){
+            $requete .= str_contains($requete, "WHERE") ? " AND " : " WHERE ";
+            $requete .= " adminOnly = 0 " ;
+        }
         $requete .= " order by indentation ";
-         return Model::mdRequeteLister($requete ,[]);
+        return Model::mdRequeteLister($requete ,[]);
     }  
     
 }

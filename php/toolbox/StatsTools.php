@@ -81,28 +81,54 @@ trait StatsTools {
         return sqrt($variance);
     }
     
-    protected function deriveeParabolleEn2(array $y): float{
-    //applique une regression de degré 2 
-    // puis calcule la dérivée du point 2
-        [$y1, $y2, $y3] = $y;
+    function stats_deriveeDernierPoint(array $y): float{
+        $d = array_values($y);
+        $n = count($d);
+        if ($n < 3 || $n > 9) {
+            throw new \InvalidArgumentException("Il faut entre 3 et 9 valeurs, $n reçue(s).");
+        }
 
-        // Résolution exacte du système avec x ∈ {1, 2, 3}
-        // f(1) = a + b + c = y1
-        // f(2) = 4a + 2b + c = y2
-        // f(3) = 9a + 3b + c = y3
-        //
-        // Par différences successives :
-        // (f(3) - f(1)) / 2 = 5a + 2b + c  ... non, on fait mieux :
-        // f(3) - f(1) = 8a + 2b          => 8a + 2b = y3 - y1    (I)
-        // f(2) - f(1) =  3a +  b          =>  3a +  b = y2 - y1   (II)
-        // (I) - 2*(II) => 2a = (y3 - y1) - 2*(y2 - y1) = y3 - 2*y2 + y1
-
-        $a = ($y1 - 2 * $y2 + $y3) / 2.0;
-        $b = ($y2 - $y1) - 3 * $a;         // de (II) : b = (y2-y1) - 3a
-
-        // f'(x) = 2ax + b  =>  f'(2) = 4a + b
-        return 4.0 * $a + $b;
+        $derivee = 0.0;
+        for ($k = 1; $k < $n; $k++) {
+            // différences d'ordre k : on écrase le tableau de droite à gauche
+            for ($i = $n - 1; $i >= $k; $i--) {
+                $d[$i] -= $d[$i - 1];
+            }
+            $derivee += $d[$n - 1] / $k;   // ∇^k y au dernier point, divisé par k
+        }
+        return $derivee;
     }
+   
+    /**
+ * Ordonnée au point n+1 du polynôme de degré n qui passe par
+ * (1, y[0]), ..., (n, y[n-1]) et dont la dérivée en n+1 vaut $t.
+ *
+ * @param list<int|float> $y  n ordonnées (3 ≤ n ≤ 9), $y[0] ↔ abscisse 1
+ * @param float           $t  dérivée imposée au point d'abscisse n+1
+ */
+    function stats_ordonneePointSuivant(array $y, float $t): float{
+        $d = array_values($y);
+        $n = count($d);
+        if ($n < 2 || $n > 9) {
+            throw new \InvalidArgumentException("Il faut entre 2 et 9 valeurs, $n reçue(s).");
+        }
+
+        $d[] = 0.0;          // point n+1 provisoirement à Y = 0
+        $m   = $n + 1;       // nombre de points
+        $d0  = 0.0;          // dérivée en n+1 avec Y = 0
+        $h   = 0.0;          // H_n = coefficient de Y
+
+        for ($k = 1; $k < $m; $k++) {
+            for ($i = $m - 1; $i >= $k; $i--) {
+                $d[$i] -= $d[$i - 1];
+            }
+            $d0 += $d[$m - 1] / $k;
+            $h  += 1.0 / $k;
+        }
+
+        return ($t - $d0) / $h;
+    }
+    
     protected function stats_Mediane(array $tableau): ?float {
         if (empty($tableau)) {
             return null;

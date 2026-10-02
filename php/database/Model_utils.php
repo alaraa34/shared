@@ -60,7 +60,7 @@ class Model_utils {
         return Model::mdRequeteLister($requete);
     }
     
-    public static function mdSelectTable($table, array $clauseWhere, string $zonesOrdre=""){
+    public static function mdSelectTable($table, array $clauseWhere=[], string $zonesOrdre=""){
     //renvoie un select sur une table avec une clause where en zones nommées['zone'=>Valeur]
         $requete = "SELECT * " .
                     " FROM " . $table ;

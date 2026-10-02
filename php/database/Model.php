@@ -135,7 +135,7 @@ class Model {
         $ctr = 0;
         foreach ($zonesNommees as $key => $value) {
             $ctr++;
-            $requete .= $ctr ===1 ? "" : " AND ";
+            $requete .= $ctr===1 ? "" : " AND ";
             $requete .= str_replace(self::SYMBOLE_POINT,".",$key) . "=:" . $key ;
         }
         return $requete . ")" ;
