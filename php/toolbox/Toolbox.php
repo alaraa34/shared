@@ -29,13 +29,23 @@ class Toolbox {
         $noms =  is_array($tableau) ? $tableau : array($tableau);
         foreach ($noms as $nom){
             if ($css_js==self::JS){
-                $include .= '<script type="text/javascript" src="/' . $racine .'/js/' . $nom .'.js"></script> ';
+                $chemin = $racine . '/js/' . $nom . '.js';
+                $include .= '<script type="text/javascript" src="/' . $chemin . self::versionFichier($chemin) . '"></script> ';
             }
             else{
-                $include .= '<link rel="stylesheet" href="/' . $racine .'/css/' . $nom . '.css" type="text/css"/>';
+                $chemin = $racine . '/css/' . $nom . '.css';
+                $include .= '<link rel="stylesheet" href="/' . $chemin . self::versionFichier($chemin) . '" type="text/css"/>';
             }
         }
         return $include;
+    }
+
+    private static function versionFichier(string $chemin):string{
+    //"?v=<date de modification>" : quand le fichier change, l'url change et le navigateur
+    //recharge le fichier au lieu de reprendre l'ancienne version de son cache
+        if (!defined('ROOT_PATH')){return '';}
+        $fichier = ROOT_PATH . $chemin;
+        return is_file($fichier) ? '?v=' . filemtime($fichier) : '';
     }
     //==============================================================================            
     // OUTILS TRANSFORMATIONS DONNEES
