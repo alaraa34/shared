@@ -76,24 +76,63 @@ class Toolbox_html {
                     $html .
                     '</fieldset>';
     }
+    public static function htmlMenuActions(array $actions, string $titre = "Actions", string $couleur = "text-secondary"):string{
+    //bouton rond "3 points" ouvrant un menu d'actions aligné à droite (dropdown Bootstrap 5)
+    //$actions : [['texte'=>'Clore', 'href'=>'index.php?...', 'icone'=>'bi bi-check2-circle'], ...] (icone facultative)
+    //placé dans un conteneur d-flex, la classe ms-auto le pousse à droite
+        $html = '<div class="dropdown ms-auto">
+                    <button type="button" class="btn btn-light border rounded-circle d-inline-flex align-items-center justify-content-center p-0 ' . $couleur . '"
+                            style="width:2.2rem;height:2.2rem;" data-bs-toggle="dropdown" aria-expanded="false"
+                            title="' . htmlspecialchars($titre) . '" aria-label="' . htmlspecialchars($titre) . '">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                        <li><h6 class="dropdown-header">' . htmlspecialchars($titre) . '</h6></li>';
+        foreach ($actions as $action){
+            $icone = isset($action['icone']) ? '<i class="' . $action['icone'] . ' me-2"></i>' : '';
+            $html .= '<li><a class="dropdown-item" href="' . htmlspecialchars($action['href']) . '">' . $icone . htmlspecialchars($action['texte']) . '</a></li>';
+        }
+        return $html . '</ul></div>';
+    }
+
     /*******************************************************************************
     * affichage multimédia
     *******************************************************************************/
-    public static function htmlAfficherVideoYouTube(string $lien){
-        return '<div class="ratio ratio-16by9">
-                    <iframe 
-                      src="' . $lien. '" 
-                      title="Vidéo YouTube" 
+    public static function htmlAfficherLecteurVideo(string $url):string{
+    //lecteur adapté à l'url : YouTube (iframe) ou fichier vidéo (balise video)
+    //le lecteur prend toute la largeur de son conteneur (format 16/9 Bootstrap 5)
+        return self::youTubeId($url) !== "" ? self::htmlAfficherVideoYouTube($url) : self::htmlAfficherVideo($url);
+    }
+
+    public static function youTubeId(string $url):string{
+    //identifiant de la vidéo pour une url YouTube, "" si ce n'est pas une url YouTube
+    //formats : youtube.com/watch?v=ID, youtu.be/ID, youtube.com/shorts/ID, youtube.com/embed/ID, youtube.com/live/ID
+        if (preg_match('~(?:youtube(?:-nocookie)?\.com/(?:watch\?(?:.*&)?v=|shorts/|embed/|live/)|youtu\.be/)([A-Za-z0-9_-]{11})~', $url, $trouve)){
+            return $trouve[1];
+        }
+        return "";
+    }
+
+    public static function htmlAfficherVideoYouTube(string $lien):string{
+    //lecteur YouTube : l'url (watch, youtu.be, shorts...) est convertie en url "embed", seule acceptée dans une iframe
+        $id = self::youTubeId($lien);
+        $src = $id === "" ? $lien : "https://www.youtube.com/embed/" . $id;
+        return '<div class="ratio ratio-16x9">
+                    <iframe
+                      src="' . htmlspecialchars($src) . '"
+                      title="Vidéo YouTube"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      referrerpolicy="strict-origin-when-cross-origin"
                       allowfullscreen>
                     </iframe>
                 </div>';
     }
-    
+
     public static function htmlAfficherVideo(string $source):string{
-    //affiche un fichier mp4 exemple chemin/vers/votre-video.mp4
-        return     '<div class="ratio ratio-16by9">
-                        <video controls preload="metadata" poster="miniature.jpg">
-                          <source src="' . $source. '" type="video/mp4">
+    //affiche un fichier vidéo (mp4, webm...) exemple chemin/vers/votre-video.mp4
+    //pas de type imposé : le navigateur détecte le format du fichier
+        return     '<div class="ratio ratio-16x9">
+                        <video controls preload="metadata" src="' . htmlspecialchars($source) . '">
                           Votre navigateur ne prend pas en charge la lecture de cette vidéo.
                         </video>
                     </div>';
