@@ -25,14 +25,14 @@ class Parametre extends Personalisation {
     //PARAMETRES
     //***************************************************************************************************************
     public static function mdParametreGetListe(string $groupe, string $zoneRetour = "Nom", string $ordreTri = "ASC", 
-                $zoneTri = "ordre", string $zoneID = "ID"): array {
+                $zoneTri = "ordre", string $zoneID = "id"): array {
         return self::mdGetListe($groupe, $zoneRetour, $ordreTri, $zoneTri, $zoneID);
     }
     public static function mdParametreGetDetail(string $groupe,string $nom, string $zoneRetour,string|int|null $defaut = null){
         return self::mdGetDetail($groupe, $nom, $zoneRetour, $defaut);
     }
-    public static function mdParametreGetDetailFromID(int $ID, string $zoneRetour,string|int|null $defaut = null ){
-       return self::mdGetDetailFromID($ID, $zoneRetour, $defaut);
+    public static function mdParametreGetDetailFromID(int $id, string $zoneRetour,string|int|null $defaut = null ){
+       return self::mdGetDetailFromID($id, $zoneRetour, $defaut);
     } 
     
     public function set (array $tableau){

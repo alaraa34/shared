@@ -65,9 +65,9 @@ abstract class Personalisation extends Mere {
         return self::retourUnique($requete, $zoneRetour, [$groupe,$nom],$defaut);
     }
     
-    protected static function mdGetDetailFromID(int $ID, string $zoneRetour, string|int|null $defaut=null){
-        $requete = "SELECT " . $zoneRetour . " FROM " . static::TABLE   . " WHERE ID=?";
-        return self::retourUnique($requete, $zoneRetour, [$ID],$defaut);
+    protected static function mdGetDetailFromID(int $id, string $zoneRetour, string|int|null $defaut=null){
+        $requete = "SELECT " . $zoneRetour . " FROM " . static::TABLE   . " WHERE id=?";
+        return self::retourUnique($requete, $zoneRetour, [$id],$defaut);
     } 
     
     

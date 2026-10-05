@@ -54,8 +54,8 @@ class TypeLien
    
     public static function externes(){
     //retourne laliste des types de liens externes 
-        $requete = "SELECT ID FROM " . self::TABLE . " as lien_type WHERE externe=true;";
-        return implode(';', Model::mdRequeteListerZoneUnique($requete, "ID"));
+        $requete = "SELECT id FROM " . self::TABLE . " as lien_type WHERE externe=true;";
+        return implode(';', Model::mdRequeteListerZoneUnique($requete, "id"));
     }
     
     public static function extensionsAutoriseesParTypes(){
@@ -97,18 +97,18 @@ class TypeLien
     //-----------------------------------------------------------------------------------------------
     public function mdTypesLiensDetail(): array {
         //retourne un tableau de détail d'un lien 
-        $requete = "SELECT * FROM " . self::TABLE . " as lien_type WHERE ID=?;";
+        $requete = "SELECT * FROM " . self::TABLE . " as lien_type WHERE id=?;";
         return Model::mdRequeteListerUnique($requete, [$this->id]);
     }
    
     private static function mdTypesLiensListe(string $sujet, bool $retourIdSeul, string  $zoneSelect ):array {
     //retourne les types de lien admis pour un sujet (constante SUJET_LIEN de la classe demandeuse)
     //Retour id seul liste juste les identifiants des types
-        $requete = "SELECT lien_type.ID, " . $zoneSelect 
-                . " FROM " . self::TABLE . " as lien_type INNER JOIN " . TypeLienUsage_ass::TABLE . " as lien_type_usage on lien_type.ID = lien_type_usage.idTypeLien "
+        $requete = "SELECT lien_type.id, " . $zoneSelect 
+                . " FROM " . self::TABLE . " as lien_type INNER JOIN " . TypeLienUsage_ass::TABLE . " as lien_type_usage on lien_type.id = lien_type_usage.idTypeLien "
                 . " WHERE lien_type_usage.sujet = ? order by nomAffiche;";
         if ($retourIdSeul) {
-            return Model::mdRequeteListerZoneUnique($requete, "ID", [$sujet]);
+            return Model::mdRequeteListerZoneUnique($requete, "id", [$sujet]);
         } else {
             return Model::mdRequeteLister($requete, [$sujet]);
         }
@@ -116,8 +116,8 @@ class TypeLien
     
     public static function mdTypesLiensListePDF(string $sujet):array {
     //retourne les types de lien PDF admis pour un sujet (constante SUJET_LIEN de la classe demandeuse)
-        $requete = "SELECT lien_type.ID as identifiant, nomAffiche as zone
-                FROM " . self::TABLE . " as lien_type INNER JOIN " . TypeLienUsage_ass::TABLE . " as lien_type_usage on lien_type.ID = lien_type_usage.idTypeLien 
+        $requete = "SELECT lien_type.id as identifiant, nomAffiche as zone
+                FROM " . self::TABLE . " as lien_type INNER JOIN " . TypeLienUsage_ass::TABLE . " as lien_type_usage on lien_type.id = lien_type_usage.idTypeLien 
                 WHERE extensions like '%pdf%'  AND lien_type_usage.sujet = ? order by nomAffiche;";
        
         return Model::mdRequeteLister($requete,[$sujet]);

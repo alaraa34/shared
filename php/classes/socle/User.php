@@ -168,7 +168,7 @@ class User extends Mere{
  
     private function rechercheUsr() :array{
         //Retourne le détail d'un user à partir de son pseudo (le mot de passe est vérifié en PHP)
-        $requete = "SELECT ID as id,abrev,pseudo,password,nom,prenom,avatar,administrateur
+        $requete = "SELECT id,abrev,pseudo,password,nom,prenom,avatar,administrateur
                      FROM " . self::TABLE . " as user 
                      WHERE pseudo = ?;";
          return Model::mdRequeteListerUnique($requete ,[$this->pseudo]);

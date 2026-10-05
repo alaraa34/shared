@@ -55,7 +55,7 @@ abstract class Mere_instance {
             } 
             else{
                 //id renseigné
-                $retour = Model::mdUpdate($this::TABLE, TbClasse::classeValeurProprietesAvecCleExterne($this,$idProprietaire), "ID=" . $this->id);
+                $retour = Model::mdUpdate($this::TABLE, TbClasse::classeValeurProprietesAvecCleExterne($this,$idProprietaire), "id=" . $this->id);
                 if (!$retour){die ("Update " . get_class($this)  . ": Erreur mise à jour 010");}
             }
 

@@ -237,8 +237,8 @@ class Lienhtml
 
     private static function genererLigneLienInitValueListe(int $indice , array $typesLien, $lien){
     //affiche la liste des types de liens possibles ou la liste et le lien existant
-        if ($indice == Lien::MODELE_LIGNE){return TbListe::valeursChoixListe($typesLien,true,"ID","nomAffiche");}
-        else {return TbListe::valeursChoixListe($typesLien,true,"ID","nomAffiche", selected:$lien->typeLien->id);}
+        if ($indice == Lien::MODELE_LIGNE){return TbListe::valeursChoixListe($typesLien,true,"id","nomAffiche");}
+        else {return TbListe::valeursChoixListe($typesLien,true,"id","nomAffiche", selected:$lien->typeLien->id);}
     }
 
     private static function afficherLiensExistants(array $infosLiens, array $typesLiens) :string {

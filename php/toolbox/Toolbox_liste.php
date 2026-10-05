@@ -317,7 +317,7 @@ class Toolbox_liste {
         //$select contient l'identifiant à sélectionner 
         $element = "";
         //var_dump ($valeurs);
-        if ($choisir){$element = '<option disabled value="">Choisir...</option>';}
+        if ($choisir){$element = '<option disabled selected value="">Choisir...</option>';}
         foreach ($valeurs as $valeur) {
             //$valeur est un tableau associatif à deux postes  ['identifiant', $zone]
             $element .= "<option value=\"" . $valeur[$identifiant] . "\"";

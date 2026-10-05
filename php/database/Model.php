@@ -15,7 +15,7 @@ class Model {
  
     public static function mdDelete(string $table, array $zones) {
     //Traitement spécial si suppression sur ID
-    //Exemple mdDelete("etablissement_contact", ['ID'=>$contact['idContact']]);
+    //Exemple mdDelete("etablissement_contact", ['id'=>$contact['idContact']]);
         $requete = "DELETE FROM " . $table . self::mdClauseWhere($zones) . " ;";
         return self::mdRequeteExecuter($requete,$zones);
     }
@@ -28,7 +28,7 @@ class Model {
     }
     
      public static function mdDeleteAvecClauseWhereStatique(string $table, array $zonesClauseWhere) {
-    //constitue une clause where where ID=valeur et le tableau $zones contient ['ID'=>3]
+    //constitue une clause where where id=valeur et le tableau $zones contient ['id'=>3]
         // parenthèses pour être couplées à d'autres clauses
         $requete = "DELETE FROM " . $table . self::mdClauseWhereStatique($zonesClauseWhere);
         return self::mdRequeteExecuter($requete);
@@ -45,7 +45,7 @@ class Model {
     /*exemple de requete finale 
     DELETE seanceElement
     FROM tr_seance_element as seanceElement
-    INNER JOIN tr_exercice as exercice ON seanceElement.idExercice = exercice.ID 
+    INNER JOIN tr_exercice as exercice ON seanceElement.idExercice = exercice.id 
     WHERE seanceElement.idSeance = 1 AND exercice.idBibliotheque=4*/
               
         //tables à supprimer
@@ -126,8 +126,8 @@ class Model {
     }
 
     public static function mdClauseWhere(array $zonesNommees): string {
-    //constitue une clause where where ID=:ID et le tableau $zones contient ['ID'=>3]
-    //si table d'appartenance mettre le contenu de la constante SYMBOLE_POINT à la place du . , exemple ['song SYMBOLE_POINT ID'=>3]
+    //constitue une clause where where id=:id et le tableau $zones contient ['id'=>3]
+    //si table d'appartenance mettre le contenu de la constante SYMBOLE_POINT à la place du . , exemple ['song SYMBOLE_POINT id'=>3]
         // parenthèses pour être couplées à d'autres clauses
         $requete = " WHERE (";    
          //'SELECT nom, prix FROM jeux_video WHERE possesseur = :possesseur AND prix <= :prixmax'
@@ -142,7 +142,7 @@ class Model {
     }
     
     public static function mdClauseWhereStatique(array $zones): string {
-    //constitue une clause where where ID=valeur et le tableau $zones contient ['ID'=>3]
+    //constitue une clause where where id=valeur et le tableau $zones contient ['id'=>3]
         // parenthèses pour être couplées à d'autres clauses
         $ctr = 0;
         $requete = " WHERE (";    

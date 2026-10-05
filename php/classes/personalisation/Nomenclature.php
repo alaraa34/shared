@@ -13,7 +13,7 @@ class Nomenclature extends Personalisation{
     //*************************************************************************************************************
     //NOMENCLATURE
     //***************************************************************************************************************
-    public static function mdNomenclatureGetListe(string $groupe, string $zoneRetour = "Nom", string $ordreTri = "ASC", $zoneTri = "ordre", string $zoneID = "ID"): array {
+    public static function mdNomenclatureGetListe(string $groupe, string $zoneRetour = "Nom", string $ordreTri = "ASC", $zoneTri = "ordre", string $zoneID = "id"): array {
         if ($zoneRetour=="*"){
             return self::mdGetListeComplete($groupe,$ordreTri,$zoneTri);
         }
@@ -26,8 +26,8 @@ class Nomenclature extends Personalisation{
         return self::mdGetDetail($groupe, $nom, $zoneRetour);
     }
     
-    public static function mdNomenclatureGetDetailFromID(int $ID, string $zoneRetour="valeurA",string|int|null $defaut = null  ){
-        return self::mdGetDetailFromID($ID, $zoneRetour);
+    public static function mdNomenclatureGetDetailFromID(int $id, string $zoneRetour="valeurA",string|int|null $defaut = null  ){
+        return self::mdGetDetailFromID($id, $zoneRetour);
     }
     
   

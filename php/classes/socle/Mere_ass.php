@@ -58,7 +58,7 @@ abstract class Mere_ass {
     public function delete():bool {
     //supprime l'association 
         if ($this->id > 0) {
-            return Model::mdDelete(self::TABLE, ['ID' => $this->id]);
+            return Model::mdDelete(self::TABLE, ['id' => $this->id]);
         }
     }
     //

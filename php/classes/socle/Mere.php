@@ -56,7 +56,7 @@ abstract class Mere {
             else{
                 //id renseigné, retour false si existe pas
                 $retour = Model::mdUpdate($this::TABLE,  $this->classeValeurProprietes(), "id=" . $this->id);
-                //if (!$retour){throw new \RuntimeException ("Update " . get_class($this)  . ": Erreur mise à jour 010, ID=".$this->id);}
+                //if (!$retour){throw new \RuntimeException ("Update " . get_class($this)  . ": Erreur mise à jour 010, id=".$this->id);}
             }
 
             //mise à jour des collections après car besoin de l'ID de la classe mère

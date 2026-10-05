@@ -466,7 +466,7 @@ class Toolbox_classe {
         }
         
         //enfin suppression physique dans la table qui contient la classe
-        if ($retour) {Model::mdDelete($classe::TABLE, ['ID' => $classe->id]);}
+        if ($retour) {Model::mdDelete($classe::TABLE, ['id' => $classe->id]);}
         return $retour;
     }
     

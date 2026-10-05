@@ -77,7 +77,7 @@ class Lien
         }
         else{
             //Mise à jour seulement sur prive et description 
-            $retour = Model::mdUpdate(self::TABLE, ['description'=>$this->description,'prive'=>$this->prive], "ID=" . $this->id);
+            $retour = Model::mdUpdate(self::TABLE, ['description'=>$this->description,'prive'=>$this->prive], "id=" . $this->id);
          }
         return $retour;
         
@@ -94,7 +94,7 @@ class Lien
                 $retour = TbUpload::uploadDeleteFile($this->url);
             }
             //suppression du lien
-            if ($retour){$retour = Model::mdDelete(self::TABLE, ['ID' => $this->id]);}
+            if ($retour){$retour = Model::mdDelete(self::TABLE, ['id' => $this->id]);}
     
         }
         return $retour;
@@ -210,7 +210,7 @@ class Lien
     //Retourne les liens issus d'une  d'après l'identifiant
     //soit retourne tous les liens (par défaut), soit ceux cités dans le tableau $liste qui contient les ID
     //ex tableAss = song_lien $cle = idSong
-        $requete = "SELECT lien.ID as id
+        $requete = "SELECT lien.id as id
                         FROM " . self::TABLE . " as lien
                                 INNER join " . $tableAss . " as tableAss ON lien.id = tableAss.idLien" .
                         " WHERE tableAss." . $cle . "=? AND " . self::wherePrive();
