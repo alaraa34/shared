@@ -145,6 +145,12 @@ class User extends Mere{
         return Model::mdRequeteExecuter($requete, $zones);
     }
 
+    public function motDePasseParDefaut():string{
+    //mot de passe de réinitialisation : prénom en minuscules suivi de son nombre de lettres (ex. Alain -> alain5)
+        $prenom = trim($this->prenom);
+        return mb_strtolower($prenom, 'UTF-8') . mb_strlen($prenom, 'UTF-8');
+    }
+
     public function controlerUnicite():string{
     //vérifie que le pseudo et l'abréviation ne sont pas déjà utilisés par un autre utilisateur
     //retourne un message d'erreur ou une chaine vide

@@ -20,10 +20,14 @@ require_once __DIR__ . '/../lib/PHPMailer/SMTP.php';
 
 class Toolbox_mail {
 
+    public static string $derniereErreur = "";     //motif du dernier échec d'envoi (sans mot de passe), pour l'affichage
+
     public static function envoyer(string $destinataire, string $objet, string $texte): bool {
     //envoie un mail texte ; retourne false en cas d'échec (détail dans le log PHP)
+        self::$derniereErreur = "";
         $configuration = self::lireConfiguration();
         if (count($configuration) === 0) {
+            self::$derniereErreur = "fichier de configuration MAIL absent ou incorrect";
             return false;
         }
         [$serveur, $port, $adresse, $motDePasse] = $configuration;
@@ -55,6 +59,7 @@ class Toolbox_mail {
             $mail->isHTML(false);
             return $mail->send();
         } catch (\Throwable $e) {
+            self::$derniereErreur = $mail->ErrorInfo !== "" ? $mail->ErrorInfo : $e->getMessage();
             error_log("Toolbox_mail::envoyer vers " . $destinataire . " : " . $mail->ErrorInfo . " " . $e->getMessage());
             return false;
         }
