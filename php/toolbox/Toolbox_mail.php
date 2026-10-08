@@ -33,6 +33,14 @@ class Toolbox_mail {
         [$serveur, $port, $adresse, $motDePasse] = $configuration;
 
         $mail = new PHPMailer(true);
+        //trace de la connexion (les identifiants sont masqués par PHPMailer), gardée pour expliquer un échec
+        $trace = [];
+        $mail->SMTPDebug   = 3;
+        $mail->Debugoutput = function (string $ligne) use (&$trace): void {
+            if (preg_match('/(error|fail|unable|refused|timed out|certificate|ssl|tls|no route)/i', $ligne)) {
+                $trace[] = trim($ligne);
+            }
+        };
         try {
             $mail->isSMTP();
             $mail->Host     = $serveur;
@@ -59,7 +67,8 @@ class Toolbox_mail {
             $mail->isHTML(false);
             return $mail->send();
         } catch (\Throwable $e) {
-            self::$derniereErreur = $mail->ErrorInfo !== "" ? $mail->ErrorInfo : $e->getMessage();
+            self::$derniereErreur = ($mail->ErrorInfo !== "" ? $mail->ErrorInfo : $e->getMessage())
+                                  . (count($trace) > 0 ? " | Détail : " . implode(" / ", array_unique($trace)) : "");
             error_log("Toolbox_mail::envoyer vers " . $destinataire . " : " . $mail->ErrorInfo . " " . $e->getMessage());
             return false;
         }
