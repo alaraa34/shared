@@ -214,7 +214,7 @@ class Model {
         $database = Database::dbConnect();
         //exécution 
         $statement = $database->prepare($requete);
-        $statement->execute($zones);
+        $statement->execute(self::mdParametresPDO($zones));
         
         //retourne true ou false;
         $retour = false;
@@ -278,11 +278,17 @@ class Model {
         else {
             //paramètres à exécuter
             $statement = $database->prepare($requete);
-            $statement->execute($parametres);    
+            $statement->execute(self::mdParametresPDO($parametres));
         }
         return $statement ;
     }
     
+    private static function mdParametresPDO(array $parametres): array {
+    //PDO envoie false sous forme de chaîne vide '' : refusé par MySQL en mode strict sur une colonne entière
+    //(tinyint, ex. enchainement, actif). Les booléens sont donc envoyés en 0 / 1.
+        return array_map(fn($valeur) => is_bool($valeur) ? (int)$valeur : $valeur, $parametres);
+    }
+
     //--------------------------------------------------------------------------
     // TRANSACTIONS : relais vers Database (voir le détail des règles là-bas)
     //--------------------------------------------------------------------------
