@@ -26,11 +26,8 @@ class TypeLien
     public const MP3 = 1;
     public const MP3TB = 18;    //mp3 enregistré par le groupe
     public const MP4 = 29;
-    public const MP3A = 6;
     public const SITE = 4;
     public const PAD = 28;
-    public const MP3D = 54;
-    public const MP3SVX = 31;
        
     // Méthodes
     public function __construct($id=0) {

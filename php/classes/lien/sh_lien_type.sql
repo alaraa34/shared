@@ -34,7 +34,6 @@ INSERT INTO `sh_lien_type` (`id`, `nom`, `nomAffiche`, `nomLong`, `externe`, `re
 (3, 'Partition', 'partition', '', 0, 'partition', 'textePARTITION', 'application/pdf', '<i class=\"bi bi-file-earmark-pdf\"></i>'),
 (4, 'You Tube', 'site', '', 1, '', 'texteSITE', '', '<i class=\"bi bi-globe\"></i>'),
 (5, 'Image', 'image', '', 0, 'image', 'textePHOTO', 'png image/png jpeg jpg image/jpeg', '<i class=\"bi bi-file-image\"></i>'),
-(6, 'MP3autre', 'mp3a', 'mp3 autre', 0, 'mp3', 'texteMP3', 'audio/mp3', '<i class=\"bi bi-volume-up-fill\"></i>'),
 (9, 'Paroles', 'paroles', '', 0, 'paroles', 'textePAROLES', 'application/pdf,application.txt', '<i class=\"bi bi-file-earmark-pdf\"></i>'),
 (11, 'Google Maps', 'maps', '', 1, '', 'texteMAPS', '', '<i class=\"fa-solid fa-location-dot\"></i>'),
 (12, 'Facebook', 'facebook', 'facebook', 1, '', 'texteMAPS', '', '<i class=\"bi bi-facebook\"></i>'),
@@ -43,6 +42,4 @@ INSERT INTO `sh_lien_type` (`id`, `nom`, `nomAffiche`, `nomLong`, `externe`, `re
 (21, 'Autre', 'autre docu', '', 0, 'autres', 'texteAUTRE', '.pdf ,.txt', '<i class=\"bi bi-file-earmark-pdf\"></i>'),
 (28, 'PAD', 'pad', '', 0, 'pad', 'textePAD', 'mp3 audio/mpeg', '<i class=\"bi bi-volume-up-fill\"></i>'),
 (29, 'Vidéo', 'vidéo', '', 0, 'video', 'texteVIDEO', 'video/mpeg,video/mp4,video/mkv,video/webm', '<i class=\"fa-solid fa-video\"></i>'),
-(31, 'MP3 ss voix', 'mp3svx', 'MP3 détonné sans la voix', 0, 'mp3s', 'texteMP3S', 'audio/mp3', '<i class=\"bi bi-volume-up-fill\"></i>'),
-(49, 'Choeurs', 'choeurs', '', 0, 'choeurs', 'texteCHOEURS', 'application/pdf', '<i class=\"bi bi-file-earmark-pdf\"></i>'),
-(54, 'MP3 détonn', 'mp3d', 'mp3 original à la tona concert', 0, 'mp3d', 'texteMP3D', 'audio/mp3', '<i class=\"bi bi-volume-up-fill\"></i>');
+(49, 'Choeurs', 'choeurs', '', 0, 'choeurs', 'texteCHOEURS', 'application/pdf', '<i class=\"bi bi-file-earmark-pdf\"></i>');
