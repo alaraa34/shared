@@ -78,9 +78,9 @@ class Multipiste
                    self::ERREUR     => ['text-danger',  'erreur lors du dernier traitement : cliquer pour relancer'],
                    self::A_REFAIRE  => ['text-danger',  'le MP3 a changé depuis la génération : cliquer pour régénérer']];
         [$couleur, $texte] = $textes[$etat] ?? $textes[0];
-        $icone = $etat === self::EN_COURS ? 'bi bi-hourglass-split' : 'bi bi-volume-up-fill';
         $titre = htmlspecialchars($lien['nomAffiche'] . " " . basename($lien['url']) . " : " . $texte, ENT_QUOTES);
-        $html = '<i class="' . $icone . ' fs-5 ' . $couleur . '"></i>';
+        $html = '<i class="fa-regular fa-file-audio fs-5 ' . $couleur . '"></i>';
+        if ($etat === self::EN_COURS) {$html .= '<i class="bi bi-hourglass-split small ms-1 text-warning"></i>';}
         if ($etat === self::A_TRAITER) {
             return '<span class="me-2" title="' . $titre . '">' . $html . '</span>';
         }
