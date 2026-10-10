@@ -79,8 +79,8 @@ class Multipiste
                    self::A_REFAIRE  => ['text-danger',  'le MP3 a changé depuis la génération : cliquer pour régénérer']];
         [$couleur, $texte] = $textes[$etat] ?? $textes[0];
         $titre = htmlspecialchars($lien['nomAffiche'] . " " . basename($lien['url']) . " : " . $texte, ENT_QUOTES);
-        $html = '<i class="fa-regular fa-file-audio fs-5 ' . $couleur . '"></i>';
-        if ($etat === self::EN_COURS) {$html .= '<i class="bi bi-hourglass-split small ms-1 text-warning"></i>';}
+        $html = '<i class="fa-regular fa-file-audio fs-3 ' . $couleur . '"></i>';
+        if ($etat === self::EN_COURS) {$html .= '<i class="bi bi-hourglass-split fs-5 ms-1 text-warning"></i>';}
         if ($etat === self::A_TRAITER) {
             return '<span class="me-2" title="' . $titre . '">' . $html . '</span>';
         }
