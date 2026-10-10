@@ -71,7 +71,7 @@ class Multipiste
     //$lien : id, url, nomAffiche (type de lien)
         $textes = [0                => ['text-danger',  'pas encore traité : cliquer pour générer les pistes'],
                    self::A_TRAITER  => ['text-warning', 'en attente de traitement par un PC'],
-                   self::EN_COURS   => ['text-warning', 'traitement en cours sur un PC'],
+                   self::EN_COURS   => ['text-warning', 'traitement en cours sur un PC : cliquer pour le relancer si ce PC est arrêté'],
                    self::TERMINE    => ['text-success', 'pistes générées : cliquer pour les régénérer'],
                    self::ERREUR     => ['text-danger',  'erreur lors du dernier traitement : cliquer pour relancer'],
                    self::A_REFAIRE  => ['text-danger',  'le MP3 a changé depuis la génération : cliquer pour régénérer']];
@@ -79,11 +79,13 @@ class Multipiste
         $icone = $etat === self::EN_COURS ? 'bi bi-hourglass-split' : 'bi bi-volume-up-fill';
         $titre = htmlspecialchars($lien['nomAffiche'] . " " . basename($lien['url']) . " : " . $texte, ENT_QUOTES);
         $html = '<i class="' . $icone . ' fs-5 ' . $couleur . '"></i>';
-        if ($etat === self::A_TRAITER || $etat === self::EN_COURS) {
+        if ($etat === self::A_TRAITER) {
             return '<span class="me-2" title="' . $titre . '">' . $html . '</span>';
         }
-        //confirmation avant de refaire un traitement déjà terminé
-        $confirmation = $etat === self::TERMINE ? ' onclick="return confirm(\'Régénérer les pistes de ce fichier ?\')"' : '';
+        //confirmation avant de refaire un traitement terminé ou de relancer un traitement en cours (PC arrêté)
+        $questions = [self::TERMINE  => 'Régénérer les pistes de ce fichier ?',
+                      self::EN_COURS => 'Relancer ce fichier ? A faire seulement si le PC qui le traite est arrêté.'];
+        $confirmation = isset($questions[$etat]) ? ' onclick="return confirm(\'' . $questions[$etat] . '\')"' : '';
         return '<a class="me-2" href="' . $urlDemande . '" title="' . $titre . '"' . $confirmation . '>' . $html . '</a>';
     }
 
@@ -91,7 +93,8 @@ class Multipiste
     //DEMANDE (page de pilotage)
     //-----------------------------------------------------------------------------------------------
     public static function demander(int $idLien, int $idDemandeur): bool {
-    //met un lien "à traiter" ; refusé si ce n'est pas un MP3 ou si un traitement est déjà en cours
+    //met un lien "à traiter" ; refusé si ce n'est pas un MP3
+    //un traitement en cours peut être relancé (PC arrêté) : l'agent qui le faisait verra ses envois refusés
         $lien = Model::mdRequeteListerUnique("SELECT id, idTypeLien FROM " . Lien::TABLE . " WHERE id=?", [$idLien]);
         if (count($lien) === 0 || !in_array((int)$lien['idTypeLien'], self::TYPES_SOURCE, true)) {return false;}
         $existant = Model::mdRequeteListerUnique("SELECT statut FROM " . self::TABLE . " WHERE idLien=?", [$idLien]);
@@ -100,7 +103,6 @@ class Multipiste
         if (count($existant) === 0) {
             return Model::mdInsert(self::TABLE, ['idLien'=>$idLien] + $zones + ['tailleSource'=>0]);
         }
-        if ((int)$existant['statut'] === self::EN_COURS) {return false;}
         return Model::mdUpdate(self::TABLE, $zones, "idLien=" . $idLien);
     }
 

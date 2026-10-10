@@ -133,6 +133,14 @@ class Agent:
                 self.appeler("pistesAgentTerminer", {"idLien": id_lien, "succes": 0, "message": message[:250]})
             except Exception as erreur2:
                 journal(f"Impossible de signaler l'erreur au site : {erreur2}")
+        except KeyboardInterrupt:  # Ctrl+C ou fenêtre fermée pendant un traitement : on prévient le site
+            journal(f"Lien {id_lien} : arrêt demandé, traitement abandonné")
+            try:
+                self.appeler("pistesAgentTerminer", {"idLien": id_lien, "succes": 0,
+                                                     "message": "Agent arrêté pendant le traitement"}, delai=10)
+            except Exception:
+                pass
+            raise
         finally:
             shutil.rmtree(dossier, ignore_errors=True)
 
