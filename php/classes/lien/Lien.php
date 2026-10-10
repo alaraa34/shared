@@ -46,10 +46,16 @@ class Lien
     //Mets à jour la collection des liens sur la base des mouvements
     
         $mvtsLiens = TbAdressage::getValeurPostTableau(self::ZONES_MOUVEMENTS);
-        $liens = TbClasse::classeChargerCollectionParMouvements($classeMere,$mvtsLiens, "shared\php\classes\lien\Lien");
+        return self::chargerCollectionAvecUrl($classeMere, $mvtsLiens);
+    }
+
+    public static function chargerCollectionAvecUrl(object $classeMere, array $mvtsLiens):array{
+    //charge la collection des liens d'après les mouvements et calcule l'URL des fichiers envoyés
+    //(dossier du type de lien + nom du fichier) : à utiliser par toutes les classes qui ont des liens
+        $liens = TbClasse::classeChargerCollectionParMouvements($classeMere, $mvtsLiens, self::class);
         foreach($liens as $index=>$lien){
             if (strlen($lien->url)==0){
-                //alimentation de l'URL si lien externe
+                //lien vers un fichier : l'URL n'est pas saisie, elle est calculée
                 $liens[$index]->lienExterne();
             }
         }

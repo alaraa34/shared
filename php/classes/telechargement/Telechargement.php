@@ -153,7 +153,7 @@ class Telechargement extends Mere
     public function chargerLiensParMouvements(array $mvtsLiens):void{
     //Mets à jour la collection des liens sur la base des mouvements
     //ne traite pas la mise à jour physique sauf pour la suppression
-        $this->lien = TbClasse::classeChargerCollectionParMouvements($this,$mvtsLiens, "shared\php\classes\lien\Lien")[0];
+        $this->lien = Lien::chargerCollectionAvecUrl($this, $mvtsLiens)[0];
     }
  
     //------------------------------------------------------------------------------------------------
