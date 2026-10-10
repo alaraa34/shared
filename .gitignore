@@ -15,3 +15,7 @@
 # --- Divers Windows
 Thumbs.db
 desktop.ini
+
+# --- Agent multipiste : clé secrète et fichiers de travail
+outils/multipistes/agent_pistes.ini
+outils/multipistes/travail/

@@ -1,0 +1,28 @@
+; Réglages de l'agent de génération des pistes
+; Copier ce fichier en agent_pistes.ini (même dossier) et le compléter.
+; agent_pistes.ini contient la clé secrète : ne jamais le versionner ni l'envoyer par FTP.
+
+[agent]
+; adresse du projet, avec la barre finale (test local : http://localhost/theBand/)
+url_projet = https://www.kontouma.fr/theBand/
+
+; clé secrète : la même que la première ligne de theBand/ENVIRagent.txt sur le site visé
+cle = A_REMPLACER_PAR_LA_CLE_DU_FICHIER_ENVIRagent
+
+; nom du PC affiché sur le site (vide = nom Windows du PC)
+nom_agent =
+
+; modèle Demucs : htdemucs_6s sépare voix, batterie, basse, guitare, piano, autre
+modele = htdemucs_6s
+
+; débit des MP3 produits (128 suffit pour travailler et reste sous la limite d'envoi de LWS)
+mp3_bitrate = 128
+
+; délai entre deux demandes quand il n'y a rien à faire
+attente_secondes = 30
+
+; dossier de travail temporaire (vidé après chaque fichier)
+dossier_travail = C:\multipistes\travail
+
+; options supplémentaires passées à Demucs, par exemple "-d cuda" avec une carte NVIDIA
+options_demucs =

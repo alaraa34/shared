@@ -24,6 +24,7 @@ class TypeLien
     public const TABLE  = "sh_lien_type";
     //types de lien
     public const MP3 = 1;
+    public const MP3TB = 18;    //mp3 enregistré par le groupe
     public const MP4 = 29;
     public const MP3A = 6;
     public const SITE = 4;
