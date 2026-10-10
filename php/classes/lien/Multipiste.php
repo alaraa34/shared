@@ -38,6 +38,8 @@ class Multipiste
     public const string TONA_ORIGINE = "t0";
     //au-delà, un traitement "en cours" est considéré comme abandonné (PC éteint, plantage)
     public const int DELAI_ABANDON_MINUTES = 180;
+    //un agent qui n'a pas contacté le site depuis ce délai est considéré comme arrêté (il appelle toutes les 30 s)
+    public const int DELAI_AGENT_ACTIF_SECONDES = 120;
     //types de lien dont on peut générer les pistes
     public const array TYPES_SOURCE = [TypeLien::MP3, TypeLien::MP3TB];
 
@@ -117,9 +119,39 @@ class Multipiste
         return strlen($attendue) >= 20 && hash_equals($attendue, $cle);
     }
 
+    public static function agentsActifs(): array {
+    //agents qui ont contacté le site récemment : [nom => secondes depuis le dernier contact]
+        $retour = [];
+        foreach (self::agentsLirePresences() as $nom => $horodatage) {
+            $ecart = time() - (int)$horodatage;
+            if ($ecart <= self::DELAI_AGENT_ACTIF_SECONDES) {$retour[$nom] = $ecart;}
+        }
+        return $retour;
+    }
+
+    private static function agentSignalerPresence(string $agent): void {
+    //note l'heure du dernier contact de l'agent (fichier agents.json du dossier des pistes)
+        $presences = self::agentsLirePresences();
+        $presences[$agent] = time();
+        if (TbUpload::uploadIsDirOrCreateIt(self::fichierPresences(true))) {
+            @file_put_contents(self::fichierPresences(), json_encode($presences), LOCK_EX);
+        }
+    }
+
+    private static function agentsLirePresences(): array {
+        $contenu = is_file(self::fichierPresences()) ? (string)@file_get_contents(self::fichierPresences()) : '';
+        return is_array($tableau = json_decode($contenu, true)) ? $tableau : [];
+    }
+
+    private static function fichierPresences(bool $dossierSeul = false): string {
+        $dossier = TbUpload::fichierPath() . self::REPERTOIRE;
+        return $dossierSeul ? $dossier : $dossier . "/agents.json";
+    }
+
     public static function agentProchain(string $agent): array {
     //réserve le prochain lien à traiter pour cet agent et retourne ce qu'il faut pour le télécharger
     //retourne ['idLien'=>0] s'il n'y a rien à faire
+        self::agentSignalerPresence($agent);
         self::agentRelancerAbandons();
         $requete = "SELECT mp.idLien, lie.url FROM " . self::TABLE . " as mp INNER JOIN " . Lien::TABLE . " as lie ON lie.id = mp.idLien
                     WHERE mp.statut = ? ORDER BY mp.dateDemande, mp.idLien";
@@ -143,6 +175,7 @@ class Multipiste
 
     public static function agentRecevoir(int $idLien, string $agent, string $piste, array $fichier): string {
     //enregistre une piste envoyée par l'agent ; retourne "" si ok, sinon le message d'erreur
+        self::agentSignalerPresence($agent);
         if (!array_key_exists($piste, self::PISTES)) {return "Piste inconnue";}
         if (!self::agentProprietaire($idLien, $agent)) {return "Ce fichier n'est pas en cours de traitement par cet agent";}
         if (($fichier['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
