@@ -3,7 +3,10 @@ function jsAffichagePlayer(){
 //En modification  de la demande d'affichage d'un player    
     //récupération des infos des box
     idContexte = $('#idContexte').val();
-    typeMP3 = $('#typeMP3').val();
+    //choix par boutons radio (Original / Groupe) ou ancienne liste déroulante
+    typeMP3 = $('input[name=typeMP3]:checked').val() ?? $('#typeMP3').val();
+    //la liste va être remplacée : arrêt du lecteur multipiste en cours
+    if (typeof window.lecteurMultipisteToutArreter === 'function') { window.lecteurMultipisteToutArreter(); }
     idSetlist = $('#idSetlist').val();
     //constitution d'un objet data destiné au post
     let str = formatterDatas("idContexte;typeMP3;idSetlist" ,  idContexte + ";" + typeMP3 +" ;" + idSetlist);

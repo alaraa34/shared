@@ -24,5 +24,8 @@ attente_secondes = 30
 ; dossier de travail temporaire (vidé après chaque fichier)
 dossier_travail = C:\multipistes\travail
 
+; ffmpeg utilisé pour transposer les pistes (vide = celui du PATH)
+ffmpeg =
+
 ; options supplémentaires passées à Demucs, par exemple "-d cuda" avec une carte NVIDIA
 options_demucs =

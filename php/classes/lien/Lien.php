@@ -196,8 +196,9 @@ class Lien
         return $myhtml;
     }
     
-    private static function wherePrive(){
+    public static function wherePrive(){
     // regle de gestion pour les liens privés, par défaut restitution du privé, sinon le public
+    // (publique : utilisée dans les requêtes des players, colonnes prive et idUser non préfixées)
     // user non connecté seulement le public
         if (User::connectUserGetInfo('id',0)===0){
             return " prive = false ";

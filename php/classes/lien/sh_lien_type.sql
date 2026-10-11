@@ -29,7 +29,7 @@ CREATE TABLE `sh_lien_type` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Types de lien communs à toutes les applications';
 
 INSERT INTO `sh_lien_type` (`id`, `nom`, `nomAffiche`, `nomLong`, `externe`, `repertoire`, `couleur`, `extensions`, `icone`) VALUES
-(1, 'MP3', 'mp3', 'mp3 enregistré en répétition ou li', 0, 'mp3', 'texteMP3', 'audio/mp3', '<i class=\"bi bi-volume-up-fill\"></i>'),
+(1, 'MP3', 'mp3', 'mp3 original', 0, 'mp3', 'texteMP3', 'audio/mp3', '<i class=\"bi bi-volume-up-fill\"></i>'),
 (2, 'Accords', 'accords', '', 0, 'accords', 'texteACCORDS', 'application/pdf', '<i class=\"bi bi-file-earmark-pdf\"></i>'),
 (3, 'Partition', 'partition', '', 0, 'partition', 'textePARTITION', 'application/pdf', '<i class=\"bi bi-file-earmark-pdf\"></i>'),
 (4, 'You Tube', 'site', '', 1, '', 'texteSITE', '', '<i class=\"bi bi-globe\"></i>'),
@@ -39,6 +39,7 @@ INSERT INTO `sh_lien_type` (`id`, `nom`, `nomAffiche`, `nomLong`, `externe`, `re
 (12, 'Facebook', 'facebook', 'facebook', 1, '', 'texteMAPS', '', '<i class=\"bi bi-facebook\"></i>'),
 (13, 'Instagram', 'instagram', 'instagram', 1, '', 'texteMAPS', '', '<i class=\"bi bi-instagram\"></i>'),
 (15, 'PDF', 'pdf', 'fichier pdf', 0, '', 'textePARTITION', 'application/pdf', '<i class=\"bi bi-file-earmark-pdf\"></i>'),
+(18, 'MP3TB', 'mp3tb', 'mp3 enregistré par le groupe', 0, 'mp3tb', 'texteMP3', 'audio/mp3', '<i class=\"bi bi-volume-up-fill\"></i>'),
 (21, 'Autre', 'autre docu', '', 0, 'autres', 'texteAUTRE', '.pdf ,.txt', '<i class=\"bi bi-file-earmark-pdf\"></i>'),
 (28, 'PAD', 'pad', '', 0, 'pad', 'textePAD', 'mp3 audio/mpeg', '<i class=\"bi bi-volume-up-fill\"></i>'),
 (29, 'Vidéo', 'vidéo', '', 0, 'video', 'texteVIDEO', 'video/mpeg,video/mp4,video/mkv,video/webm', '<i class=\"fa-solid fa-video\"></i>'),

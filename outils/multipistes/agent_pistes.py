@@ -4,7 +4,10 @@ Agent de génération des pistes du lecteur multipiste (theBand, training...)
 Tourne sur un PC où Demucs est installé. En boucle :
   1. demande au site le prochain MP3 à traiter (page "Générer les pistes" : icônes orange)
   2. le télécharge, le sépare en 6 pistes avec Demucs (modèle htdemucs_6s)
-  3. renvoie les pistes une par une au site, puis signale la fin (icône verte) ou l'erreur
+  3. si une transposition est demandée (tona de scène), transpose les pistes avec ffmpeg
+     (filtre rubberband : la hauteur change, pas le tempo ; batterie recopiée telle quelle)
+  4. renvoie les pistes une par une au site, puis signale la fin (icône verte) ou l'erreur
+Quand seule la tona de scène a changé, l'agent réutilise les pistes d'origine du site (quelques secondes).
 
 Utilisation (dans l'environnement virtuel où Demucs est installé) :
     python agent_pistes.py              tourne en boucle jusqu'à Ctrl+C
@@ -51,6 +54,8 @@ class Agent:
         self.attente = section.getint("attente_secondes", 30)
         self.travail = Path(section.get("dossier_travail", str(DOSSIER / "travail")))
         self.options_demucs = section.get("options_demucs", "").split()
+        self.ffmpeg = section.get("ffmpeg", "ffmpeg").strip() or "ffmpeg"
+        self._rubberband = None  # ffmpeg dispose-t-il du filtre rubberband ? (vérifié au premier besoin)
         if len(self.cle) < 20:
             raise ErreurAgent("La clé (cle) doit faire au moins 20 caractères : celle du fichier ENVIRagent.txt du site")
 
@@ -101,26 +106,23 @@ class Agent:
         dossier.mkdir(parents=True)
         debut = time.time()
         try:
-            source = dossier / "source.mp3"
-            journal(f"Lien {id_lien} : téléchargement de {urllib.parse.unquote(tache['chemin'])}")
-            urllib.request.urlretrieve(self.url_projet + tache["chemin"], source)
+            tona = int(tache.get("tona", 0))
+            if tache.get("mode", "complet") == "complet":
+                origine = self.separer(tache, dossier)
+                for piste in tache["pistes"]:
+                    self.envoyer_piste(id_lien, piste, origine / f"{piste}.mp3", 0)
+            else:
+                origine = self.telecharger_origine(tache, dossier)
 
-            journal(f"Lien {id_lien} : séparation avec {self.modele} (plusieurs minutes)...")
-            commande = [sys.executable, "-m", "demucs", "-n", self.modele, "--mp3",
-                        "--mp3-bitrate", str(self.bitrate), "-o", str(dossier / "sortie"),
-                        *self.options_demucs, str(source)]
-            resultat = subprocess.run(commande, capture_output=True, text=True, encoding="utf-8", errors="replace")
-            if resultat.returncode != 0:
-                derniere_ligne = (resultat.stderr.strip().splitlines() or ["erreur inconnue"])[-1]
-                raise ErreurAgent(f"Demucs a échoué : {derniere_ligne}")
-
-            sortie = dossier / "sortie" / self.modele / "source"
-            for piste in tache["pistes"]:
-                fichier = sortie / f"{piste}.mp3"
-                if not fichier.is_file():
-                    raise ErreurAgent(f"Piste {piste} absente de la sortie de Demucs")
-                journal(f"Lien {id_lien} : envoi de {piste} ({fichier.stat().st_size // 1024} Ko)")
-                self.envoyer_fichier("pistesAgentRecevoir", {"idLien": id_lien, "piste": piste}, fichier)
+            if tona != 0:
+                transposees = dossier / "transposees"
+                transposees.mkdir()
+                journal(f"Lien {id_lien} : transposition de {tona:+d} demi-ton(s)")
+                for piste in tache["pistes"]:
+                    destination = transposees / f"{piste}.mp3"
+                    self.transposer(origine / f"{piste}.mp3", destination, tona,
+                                    piste in tache.get("nonTransposees", []), piste == "vocals")
+                    self.envoyer_piste(id_lien, piste, destination, tona)
 
             duree = int(time.time() - debut)
             self.appeler("pistesAgentTerminer", {"idLien": id_lien, "succes": 1, "message": "",
@@ -143,6 +145,72 @@ class Agent:
             raise
         finally:
             shutil.rmtree(dossier, ignore_errors=True)
+
+    def separer(self, tache, dossier):
+        """télécharge le MP3 et le sépare en pistes avec Demucs ; retourne le dossier des pistes"""
+        id_lien = tache["idLien"]
+        source = dossier / "source.mp3"
+        journal(f"Lien {id_lien} : téléchargement de {urllib.parse.unquote(tache['chemin'])}")
+        urllib.request.urlretrieve(self.url_projet + tache["chemin"], source)
+
+        journal(f"Lien {id_lien} : séparation avec {self.modele} (plusieurs minutes)...")
+        commande = [sys.executable, "-m", "demucs", "-n", self.modele, "--mp3",
+                    "--mp3-bitrate", str(self.bitrate), "-o", str(dossier / "sortie"),
+                    *self.options_demucs, str(source)]
+        resultat = subprocess.run(commande, capture_output=True, text=True, encoding="utf-8", errors="replace")
+        if resultat.returncode != 0:
+            derniere_ligne = (resultat.stderr.strip().splitlines() or ["erreur inconnue"])[-1]
+            raise ErreurAgent(f"Demucs a échoué : {derniere_ligne}")
+        sortie = dossier / "sortie" / self.modele / "source"
+        for piste in tache["pistes"]:
+            if not (sortie / f"{piste}.mp3").is_file():
+                raise ErreurAgent(f"Piste {piste} absente de la sortie de Demucs")
+        return sortie
+
+    def telecharger_origine(self, tache, dossier):
+        """transposition seule : récupère les pistes d'origine déjà générées sur le site"""
+        origine = dossier / "t0"
+        origine.mkdir()
+        journal(f"Lien {tache['idLien']} : récupération des pistes d'origine")
+        for piste, chemin in tache["cheminsT0"].items():
+            urllib.request.urlretrieve(self.url_projet + chemin, origine / f"{piste}.mp3")
+        return origine
+
+    def envoyer_piste(self, id_lien, piste, fichier, tona):
+        dossier = "t0" if tona == 0 else f"t{tona:+d}"
+        journal(f"Lien {id_lien} : envoi de {piste} ({dossier}, {fichier.stat().st_size // 1024} Ko)")
+        self.envoyer_fichier("pistesAgentRecevoir", {"idLien": id_lien, "piste": piste, "tona": tona}, fichier)
+
+    def rubberband_disponible(self):
+        """vrai si ffmpeg contient le filtre rubberband (meilleure qualité de transposition)"""
+        if self._rubberband is None:
+            try:
+                filtres = subprocess.run([self.ffmpeg, "-hide_banner", "-filters"], capture_output=True,
+                                         text=True, encoding="utf-8", errors="replace").stdout
+            except FileNotFoundError:
+                raise ErreurAgent(f"ffmpeg introuvable ({self.ffmpeg}) : l'installer (winget install Gyan.FFmpeg) "
+                                  "ou indiquer son chemin dans agent_pistes.ini (ffmpeg = ...)") from None
+            self._rubberband = " rubberband " in filtres
+            if not self._rubberband:
+                journal("ffmpeg sans le filtre rubberband : transposition de qualité moindre")
+        return self._rubberband
+
+    def transposer(self, source, destination, demi_tons, copie_seule, voix):
+        """transpose une piste sans changer son tempo ; copie_seule : piste recopiée telle quelle (batterie)"""
+        if copie_seule:
+            shutil.copyfile(source, destination)
+            return
+        rapport = 2 ** (demi_tons / 12)
+        if self.rubberband_disponible():
+            filtre = f"rubberband=pitch={rapport:.6f}:pitchq=quality:formant={'preserved' if voix else 'shifted'}"
+        else:
+            filtre = f"asetrate=44100*{rapport:.6f},aresample=44100,atempo={1 / rapport:.6f}"
+        commande = [self.ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-i", str(source),
+                    "-af", filtre, "-ar", "44100", "-b:a", f"{self.bitrate}k", str(destination)]
+        resultat = subprocess.run(commande, capture_output=True, text=True, encoding="utf-8", errors="replace")
+        if resultat.returncode != 0 or not destination.is_file():
+            derniere_ligne = (resultat.stderr.strip().splitlines() or ["erreur inconnue"])[-1]
+            raise ErreurAgent(f"Transposition de {source.name} impossible : {derniere_ligne}")
 
     def tourner(self, une_fois):
         journal(f"Agent {self.nom} démarré sur {self.url_projet} (Ctrl+C pour arrêter)")
