@@ -101,6 +101,8 @@ class Lien
             }
             //suppression du lien
             if ($retour){$retour = Model::mdDelete(self::TABLE, ['id' => $this->id]);}
+            //suppression des pistes du lecteur multipiste générées pour ce lien
+            if ($retour){Multipiste::supprimerPistesDuLien($this->id);}
     
         }
         return $retour;

@@ -125,6 +125,23 @@ class Multipiste
         return Model::mdUpdate(self::TABLE, $zones, "idLien=" . $idLien);
     }
 
+    public static function supprimerPistesDuLien(int $idLien): void {
+    //lien supprimé : suppression de ses pistes (toutes tonalités) et de sa ligne de suivi, pour libérer l'espace disque
+        if ($idLien <= 0) {return;}
+        $dossier = TbUpload::fichierPath() . self::REPERTOIRE . "/" . $idLien;
+        foreach (glob($dossier . "/t*", GLOB_ONLYDIR) ?: [] as $sousDossier) {
+            self::viderRepertoire($sousDossier);
+            @rmdir($sousDossier);
+        }
+        if (is_dir($dossier)) {@rmdir($dossier);}
+        try {
+            Model::mdDelete(self::TABLE, ['idLien'=>$idLien]);
+        }
+        catch (\Throwable $erreur) {
+            //application sans table multipiste : rien à supprimer
+        }
+    }
+
     //------------------------------------------------------------------------------------------------
     //LECTEUR (affichage du lecteur multipiste ; comportement dans shared/js/multipiste.js)
     //-----------------------------------------------------------------------------------------------
