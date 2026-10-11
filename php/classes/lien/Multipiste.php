@@ -144,18 +144,19 @@ class Multipiste
             return ['mode'=>'pistes', 'base'=>self::urlWeb(self::repertoire($idLien, 0)) . '/', 'mp3'=>'',
                     'avertissement'=>'pistes en tonalité d\'origine (transposition pas encore générée)'];
         }
-        $avertissement = $etat === self::A_REFAIRE ? 'MP3 remplacé : pistes à régénérer' : 'pistes pas encore générées';
-        if ($tona !== 0) {$avertissement .= ', lecture en tonalité d\'origine';}
-        return ['mode'=>'simple', 'base'=>'', 'mp3'=>self::urlWeb(self::cheminSource($url)), 'avertissement'=>$avertissement];
+        //pas de pistes générées pour ce lien : lecture du MP3 lui-même
+        return ['mode'=>'simple', 'base'=>'', 'mp3'=>self::urlWeb(self::cheminSource($url)), 'avertissement'=>''];
     }
 
-    public static function lecteurHtml(array $source): string {
+    public static function lecteurHtml(array $source, string $libelleType = ''): string {
     //lecteur replié : lecture, position, temps ; dépliable pour choisir les pistes
+    //$libelleType : nom du type de MP3 choisi, pour l'étiquette du lecteur rouge (ex. original, groupe)
         if ($source['mode'] === 'absent') {
+            $etiquette = $libelleType === '' ? 'Pas de mp3 pour ce titre' : 'Pas de mp3 de type ' . $libelleType . ' pour ce titre';
             return '<div class="mp-lecteur mp-absent"><div class="mp-barre">'
                  . '<button type="button" class="btn btn-sm mp-play" disabled aria-label="Lecture"><i class="bi bi-play-fill"></i></button>'
                  . '<input type="range" class="form-range mp-position" disabled value="0" aria-label="Position">'
-                 . '<span class="mp-etiquette">pas de mp3 enregistré</span></div></div>';
+                 . '<span class="mp-etiquette">' . htmlspecialchars($etiquette) . '</span></div></div>';
         }
         $pistes = $source['mode'] === 'pistes' ? implode(',', array_keys(self::PISTES)) : '';
         $html = '<div class="mp-lecteur mp-mode-' . $source['mode'] . '"'
