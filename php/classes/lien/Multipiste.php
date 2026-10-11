@@ -78,7 +78,7 @@ class Multipiste
 
     public static function iconeHtml(array $lien, int $etat, string $urlDemande): string {
     //icône d'un MP3 colorée selon l'état, cliquable sauf pendant l'attente
-    //$lien : url, nomAffiche (type de lien)
+    //$lien : url, nomAffiche (type de lien), message (erreur éventuelle)
         $textes = [0                  => ['text-danger',  'pas encore traité : cliquer pour générer les pistes'],
                    self::A_TRAITER    => ['text-warning', 'en attente de traitement par un PC'],
                    self::EN_COURS     => ['text-warning', 'traitement en cours sur un PC : cliquer pour le relancer si ce PC est arrêté'],
@@ -87,6 +87,8 @@ class Multipiste
                    self::A_REFAIRE    => ['text-danger',  'le MP3 a changé depuis la génération : cliquer pour régénérer'],
                    self::A_TRANSPOSER => ['text-danger',  'tonalité de scène modifiée : cliquer pour générer la transposition (rapide)']];
         [$couleur, $texte] = $textes[$etat] ?? $textes[0];
+        //cause de l'erreur enregistrée par l'agent
+        if ($etat === self::ERREUR && ($lien['message'] ?? '') !== '') {$texte .= ' (' . $lien['message'] . ')';}
         $titre = htmlspecialchars($lien['nomAffiche'] . " " . basename($lien['url']) . " : " . $texte, ENT_QUOTES);
         $html = '<i class="fa-regular fa-file-audio fs-3 ' . $couleur . '"></i>';
         if ($etat === self::EN_COURS) {$html .= '<i class="bi bi-hourglass-split fs-5 ms-1 text-warning"></i>';}
