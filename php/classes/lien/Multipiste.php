@@ -245,7 +245,10 @@ class Multipiste
         return $dossierSeul ? $dossier : $dossier . "/agents.json";
     }
 
-    public static function agentProchain(string $agent): array {
+    //version minimale de l'agent (agent_pistes.py, constante VERSION) pour les travaux avec transposition
+    public const int VERSION_AGENT_TRANSPOSITION = 2;
+
+    public static function agentProchain(string $agent, int $versionAgent = 1): array {
     //réserve le prochain lien à traiter pour cet agent et retourne la description du travail
     //retourne ['idLien'=>0] s'il n'y a rien à faire
         self::agentSignalerPresence($agent);
@@ -262,6 +265,11 @@ class Multipiste
             if (!$reserve) {continue;}
             if (!is_file(self::cheminSource($candidat['url']))) {
                 self::agentTerminer($idLien, $agent, false, "Fichier MP3 introuvable sur le serveur");
+                continue;
+            }
+            if (($tona !== 0 || (int)$candidat['complet'] === 0) && $versionAgent < self::VERSION_AGENT_TRANSPOSITION) {
+                self::agentTerminer($idLien, $agent, false,
+                    "Agent trop ancien pour transposer : recopier shared/outils/multipistes/agent_pistes.py dans C:\\multipistes, puis relancer");
                 continue;
             }
             $complet = (int)$candidat['complet'] === 1 || !self::pistesCompletes($idLien, 0);

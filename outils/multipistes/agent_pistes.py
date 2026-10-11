@@ -32,6 +32,7 @@ from datetime import datetime
 from pathlib import Path
 
 DOSSIER = Path(__file__).resolve().parent
+VERSION = 2  # 2 : transposition (tona de scène) ; le site refuse les travaux de transposition aux agents plus anciens
 
 
 def journal(message):
@@ -78,7 +79,7 @@ class Agent:
             raise ErreurAgent("Réponse du site illisible (pas du JSON) : vérifier url_projet") from None
 
     def appeler(self, fonction, champs=None, delai=60):
-        donnees = {"cle": self.cle, "agent": self.nom, **(champs or {})}
+        donnees = {"cle": self.cle, "agent": self.nom, "version": VERSION, **(champs or {})}
         corps = urllib.parse.urlencode(donnees).encode("utf-8")
         requete = urllib.request.Request(self._url(fonction), data=corps, method="POST")
         return self._lire_reponse(requete, delai)
@@ -213,7 +214,7 @@ class Agent:
             raise ErreurAgent(f"Transposition de {source.name} impossible : {derniere_ligne}")
 
     def tourner(self, une_fois):
-        journal(f"Agent {self.nom} démarré sur {self.url_projet} (Ctrl+C pour arrêter)")
+        journal(f"Agent {self.nom} (version {VERSION}) démarré sur {self.url_projet} (Ctrl+C pour arrêter)")
         while True:
             try:
                 tache = self.appeler("pistesAgentProchain")
