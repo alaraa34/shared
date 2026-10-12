@@ -27,10 +27,10 @@ class MultipisteControle
     //liste des titres avec l'état de génération des pistes de leurs MP3 original et joué
     //$lignes : une ligne par lien (ou par titre sans lien) : idSong, titre, interprete, idLien, url, idTypeLien,
     //          nomAffiche, tona (transposition attendue en demi-tons)
-    //$libelles : correction (ex. « tona de scène »), jou (ex. « groupe »)
+    //$libelles : correction (ex. « tona de scène »), jou (ex. « groupe » ; null : pas de colonne MP3 joué)
     //retour : content, script, messageBarreMenu
         $correction = $libelles['correction'] ?? 'correction de tonalité';
-        $libelleJou = $libelles['jou'] ?? 'joué';
+        $libelleJou = array_key_exists('jou', $libelles) ? $libelles['jou'] : 'joué';
         $etats = Multipiste::etatsParLien(array_values(array_filter(array_column($lignes, 'idLien'))));
 
         //regroupement par titre
@@ -73,7 +73,7 @@ class MultipisteControle
         $infosColonnes[] = ['zone'=>'titre','valeur'=>['titre',' - ','interprete'],'fonction'=>TbListe::FONCTION_VASN];
         $infosColonnes[] = ['zone'=>'ori','titre'=>'MP3<br>original','align'=>'MC'];
         //les MP3 joués ne sont jamais transposés : colonne inutile dans la liste des titres à transposer
-        if (!$aTransposerSeulement) {$infosColonnes[] = ['zone'=>'jou','titre'=>'MP3<br>' . $libelleJou,'align'=>'MC'];}
+        if (!$aTransposerSeulement && $libelleJou !== null) {$infosColonnes[] = ['zone'=>'jou','titre'=>'MP3<br>' . $libelleJou,'align'=>'MC'];}
 
         $content = self::bandeauAgents($aTraiter, array_unique($agentsEnCours))
                  . $filtre
