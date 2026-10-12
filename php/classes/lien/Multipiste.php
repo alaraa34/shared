@@ -147,6 +147,9 @@ class Multipiste
     //------------------------------------------------------------------------------------------------
     //LECTEUR (affichage du lecteur multipiste ; comportement dans shared/js/multipiste.js)
     //-----------------------------------------------------------------------------------------------
+    //lecteur orange : une correction de tonalité est attendue mais les pistes jouées ne l'ont pas
+    public const string ALERTE_TONALITE = "Erreur de tonalité possible";
+
     public static function sourceLecteur(int $idLien, string $url, ?array $multipiste, int $tona): array {
     //ce que le lecteur doit jouer pour un lien MP3 (idLien 0 = pas de MP3)
     //retour : mode (pistes, simple, absent), base (dossier des pistes), mp3 (url du MP3), avertissement
@@ -159,12 +162,13 @@ class Multipiste
         }
         //transposition à faire ou en cours : les pistes d'origine restent jouables en attendant
         $transpositionSeule = $etat === self::A_TRANSPOSER || ($multipiste !== null && (int)$multipiste['complet'] === 0);
+        //dans les deux cas suivants le son n'a pas la correction demandée : alerte si une correction est attendue
+        $alerte = $tona !== 0 ? self::ALERTE_TONALITE : '';
         if ($transpositionSeule && $etat !== self::A_REFAIRE && self::pistesCompletes($idLien, 0)) {
-            return ['mode'=>'pistes', 'base'=>self::urlWeb(self::repertoire($idLien, 0)) . '/', 'mp3'=>'',
-                    'avertissement'=>'pistes en tonalité d\'origine (transposition pas encore générée)'];
+            return ['mode'=>'pistes', 'base'=>self::urlWeb(self::repertoire($idLien, 0)) . '/', 'mp3'=>'', 'avertissement'=>$alerte];
         }
         //pas de pistes générées pour ce lien : lecture du MP3 lui-même
-        return ['mode'=>'simple', 'base'=>'', 'mp3'=>self::urlWeb(self::cheminSource($url)), 'avertissement'=>''];
+        return ['mode'=>'simple', 'base'=>'', 'mp3'=>self::urlWeb(self::cheminSource($url)), 'avertissement'=>$alerte];
     }
 
     public static function lecteurHtml(array $source, string $libelleType = ''): string {
@@ -178,7 +182,7 @@ class Multipiste
                  . '<span class="mp-etiquette">' . htmlspecialchars($etiquette) . '</span></div></div>';
         }
         $pistes = $source['mode'] === 'pistes' ? implode(',', array_keys(self::PISTES)) : '';
-        $html = '<div class="mp-lecteur mp-mode-' . $source['mode'] . '"'
+        $html = '<div class="mp-lecteur mp-mode-' . $source['mode'] . ($source['avertissement'] === self::ALERTE_TONALITE ? ' mp-alerte' : '') . '"'
               . ' data-base="' . htmlspecialchars($source['base'], ENT_QUOTES) . '"'
               . ' data-mp3="' . htmlspecialchars($source['mp3'], ENT_QUOTES) . '"'
               . ' data-pistes="' . $pistes . '">'
