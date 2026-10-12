@@ -14,6 +14,8 @@ Utilisation (dans l'environnement virtuel où Demucs est installé) :
     python agent_pistes.py --une-fois   traite la file d'attente puis s'arrête
 
 Réglages : agent_pistes.ini dans le même dossier (copier agent_pistes.ini.exemple).
+Plusieurs sites (theBand, training...) : une section [site <nom>] par site avec url_projet et cle ;
+l'agent les interroge à tour de rôle et ne fait qu'un traitement à la fois.
 Seule la bibliothèque standard de Python est utilisée, en plus de Demucs.
 """
 import argparse
@@ -44,10 +46,13 @@ class ErreurAgent(Exception):
 
 
 class Agent:
-    def __init__(self, config):
+    def __init__(self, config, nom_site=None):
+        """réglages communs dans [agent] ; url_projet et cle dans [site <nom>] si plusieurs sites, sinon dans [agent]"""
         section = config["agent"]
-        self.url_projet = section.get("url_projet").rstrip("/") + "/"
-        self.cle = section.get("cle").strip()
+        site = config[nom_site] if nom_site else section
+        self.site = nom_site[5:].strip() if nom_site else ""
+        self.url_projet = (site.get("url_projet") or "").rstrip("/") + "/"
+        self.cle = (site.get("cle") or "").strip()
         self.nom = section.get("nom_agent", "").strip() or socket.gethostname()
         self.nom = "".join(c for c in self.nom if c.isalnum() or c in "-_")[:40]
         self.modele = section.get("modele", "htdemucs_6s")
@@ -58,7 +63,10 @@ class Agent:
         self.ffmpeg = section.get("ffmpeg", "ffmpeg").strip() or "ffmpeg"
         self._rubberband = None  # ffmpeg dispose-t-il du filtre rubberband ? (vérifié au premier besoin)
         if len(self.cle) < 20:
-            raise ErreurAgent("La clé (cle) doit faire au moins 20 caractères : celle du fichier ENVIRagent.txt du site")
+            raise ErreurAgent(f"{self.prefixe()}La clé (cle) doit faire au moins 20 caractères : celle du fichier ENVIRagent.txt du site")
+
+    def prefixe(self):
+        return f"[{self.site}] " if self.site else ""
 
     # ------------------------------------------------------------------ appels au site
     def _url(self, fonction):
@@ -118,7 +126,7 @@ class Agent:
             if tona != 0:
                 transposees = dossier / "transposees"
                 transposees.mkdir()
-                journal(f"Lien {id_lien} : transposition de {tona:+d} demi-ton(s)")
+                journal(f"{self.prefixe()}Lien {id_lien} : transposition de {tona:+d} demi-ton(s)")
                 for piste in tache["pistes"]:
                     destination = transposees / f"{piste}.mp3"
                     self.transposer(origine / f"{piste}.mp3", destination, tona,
@@ -128,16 +136,16 @@ class Agent:
             duree = int(time.time() - debut)
             self.appeler("pistesAgentTerminer", {"idLien": id_lien, "succes": 1, "message": "",
                                                  "modele": self.modele, "duree": duree})
-            journal(f"Lien {id_lien} : terminé en {duree // 60} min {duree % 60:02d} s")
+            journal(f"{self.prefixe()}Lien {id_lien} : terminé en {duree // 60} min {duree % 60:02d} s")
         except Exception as erreur:  # on signale toute erreur au site pour que l'icône passe en rouge
             message = str(erreur) or erreur.__class__.__name__
-            journal(f"Lien {id_lien} : ERREUR {message}")
+            journal(f"{self.prefixe()}Lien {id_lien} : ERREUR {message}")
             try:
                 self.appeler("pistesAgentTerminer", {"idLien": id_lien, "succes": 0, "message": message[:250]})
             except Exception as erreur2:
                 journal(f"Impossible de signaler l'erreur au site : {erreur2}")
         except KeyboardInterrupt:  # Ctrl+C ou fenêtre fermée pendant un traitement : on prévient le site
-            journal(f"Lien {id_lien} : arrêt demandé, traitement abandonné")
+            journal(f"{self.prefixe()}Lien {id_lien} : arrêt demandé, traitement abandonné")
             try:
                 self.appeler("pistesAgentTerminer", {"idLien": id_lien, "succes": 0,
                                                      "message": "Agent arrêté pendant le traitement"}, delai=10)
@@ -151,10 +159,10 @@ class Agent:
         """télécharge le MP3 et le sépare en pistes avec Demucs ; retourne le dossier des pistes"""
         id_lien = tache["idLien"]
         source = dossier / "source.mp3"
-        journal(f"Lien {id_lien} : téléchargement de {urllib.parse.unquote(tache['chemin'])}")
+        journal(f"{self.prefixe()}Lien {id_lien} : téléchargement de {urllib.parse.unquote(tache['chemin'])}")
         urllib.request.urlretrieve(self.url_projet + tache["chemin"], source)
 
-        journal(f"Lien {id_lien} : séparation avec {self.modele} (plusieurs minutes)...")
+        journal(f"{self.prefixe()}Lien {id_lien} : séparation avec {self.modele} (plusieurs minutes)...")
         commande = [sys.executable, "-m", "demucs", "-n", self.modele, "--mp3",
                     "--mp3-bitrate", str(self.bitrate), "-o", str(dossier / "sortie"),
                     *self.options_demucs, str(source)]
@@ -172,14 +180,14 @@ class Agent:
         """transposition seule : récupère les pistes d'origine déjà générées sur le site"""
         origine = dossier / "t0"
         origine.mkdir()
-        journal(f"Lien {tache['idLien']} : récupération des pistes d'origine")
+        journal(f"{self.prefixe()}Lien {tache['idLien']} : récupération des pistes d'origine")
         for piste, chemin in tache["cheminsT0"].items():
             urllib.request.urlretrieve(self.url_projet + chemin, origine / f"{piste}.mp3")
         return origine
 
     def envoyer_piste(self, id_lien, piste, fichier, tona):
         dossier = "t0" if tona == 0 else f"t{tona:+d}"
-        journal(f"Lien {id_lien} : envoi de {piste} ({dossier}, {fichier.stat().st_size // 1024} Ko)")
+        journal(f"{self.prefixe()}Lien {id_lien} : envoi de {piste} ({dossier}, {fichier.stat().st_size // 1024} Ko)")
         self.envoyer_fichier("pistesAgentRecevoir", {"idLien": id_lien, "piste": piste, "tona": tona}, fichier)
 
     def rubberband_disponible(self):
@@ -213,23 +221,34 @@ class Agent:
             derniere_ligne = (resultat.stderr.strip().splitlines() or ["erreur inconnue"])[-1]
             raise ErreurAgent(f"Transposition de {source.name} impossible : {derniere_ligne}")
 
-    def tourner(self, une_fois):
-        journal(f"Agent {self.nom} (version {VERSION}) démarré sur {self.url_projet} (Ctrl+C pour arrêter)")
-        while True:
-            try:
-                tache = self.appeler("pistesAgentProchain")
-            except (ErreurAgent, OSError) as erreur:
-                journal(f"Site injoignable ou refus : {erreur}")
-                tache = {"idLien": 0}
-                if une_fois:
-                    return
-            if tache.get("idLien"):
-                self.traiter(tache)
-                continue
-            if une_fois:
-                journal("Plus rien à traiter.")
-                return
-            time.sleep(self.attente)
+    def demander_travail(self):
+        """prochain travail du site, ou None s'il n'y a rien (ou si le site ne répond pas)"""
+        try:
+            tache = self.appeler("pistesAgentProchain")
+        except (ErreurAgent, OSError) as erreur:
+            journal(f"{self.prefixe()}Site injoignable ou refus : {erreur}")
+            return None
+        return tache if tache.get("idLien") else None
+
+
+def tourner(agents, une_fois):
+    """interroge les sites à tour de rôle ; un seul traitement à la fois sur le PC"""
+    for agent in agents:
+        journal(f"{agent.prefixe()}Agent {agent.nom} (version {VERSION}) démarré sur {agent.url_projet}")
+    journal("Ctrl+C pour arrêter")
+    while True:
+        travail = False
+        for agent in agents:
+            tache = agent.demander_travail()
+            if tache:
+                agent.traiter(tache)
+                travail = True
+        if travail:
+            continue
+        if une_fois:
+            journal("Plus rien à traiter.")
+            return
+        time.sleep(min(agent.attente for agent in agents))
 
 
 def main():
@@ -242,7 +261,9 @@ def main():
     if not config.read(arguments.config, encoding="utf-8"):
         sys.exit(f"Fichier de réglages introuvable : {arguments.config} (copier agent_pistes.ini.exemple)")
     try:
-        Agent(config).tourner(arguments.une_fois)
+        sites = [nom for nom in config.sections() if nom.lower().startswith("site ")]
+        agents = [Agent(config, nom) for nom in sites] if sites else [Agent(config)]
+        tourner(agents, arguments.une_fois)
     except ErreurAgent as erreur:
         sys.exit(str(erreur))
     except KeyboardInterrupt:

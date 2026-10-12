@@ -85,7 +85,7 @@ class Multipiste
                    self::TERMINE      => ['text-success', 'pistes générées : cliquer pour les régénérer'],
                    self::ERREUR       => ['text-danger',  'erreur lors du dernier traitement : cliquer pour relancer'],
                    self::A_REFAIRE    => ['text-danger',  'le MP3 a changé depuis la génération : cliquer pour régénérer'],
-                   self::A_TRANSPOSER => ['text-danger',  'tonalité de scène modifiée : cliquer pour générer la transposition (rapide)']];
+                   self::A_TRANSPOSER => ['text-danger',  'correction de tonalité modifiée : cliquer pour générer la transposition (rapide)']];
         [$couleur, $texte] = $textes[$etat] ?? $textes[0];
         //cause de l'erreur enregistrée par l'agent
         if ($etat === self::ERREUR && ($lien['message'] ?? '') !== '') {$texte .= ' (' . $lien['message'] . ')';}
@@ -169,6 +169,11 @@ class Multipiste
         }
         //pas de pistes générées pour ce lien : lecture du MP3 lui-même
         return ['mode'=>'simple', 'base'=>'', 'mp3'=>self::urlWeb(self::cheminSource($url)), 'avertissement'=>$alerte];
+    }
+
+    public static function sourceSimple(string $url): array {
+    //lecture d'un MP3 tel quel (MP3 « autre », jamais transformé)
+        return ['mode'=>'simple', 'base'=>'', 'mp3'=>self::urlWeb(self::cheminSource($url)), 'avertissement'=>''];
     }
 
     public static function lecteurHtml(array $source, string $libelleType = ''): string {

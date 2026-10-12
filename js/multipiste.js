@@ -143,6 +143,8 @@
     }
 
     function resynchroniser(etat) {
+        // lecteur retiré de la page (autre titre affiché, liste rechargée) : on arrête la musique
+        if (!etat.el.isConnected) { arreter(etat, false); return; }
         if (!etat.joue || etat.attente.size > 0) { return; }
         const m = maitre(etat);
         for (const audio of etat.audios) {

@@ -3,11 +3,20 @@
 ; agent_pistes.ini contient la clé secrète : ne jamais le versionner ni l'envoyer par FTP.
 
 [agent]
+; --- un seul site : url_projet et cle ici ---
 ; adresse du projet, avec la barre finale (test local : http://localhost/theBand/)
 url_projet = https://www.kontouma.fr/theBand/
-
-; clé secrète : la même que la première ligne de theBand/ENVIRagent.txt sur le site visé
+; clé secrète : la même que la première ligne de ENVIRagent.txt du projet visé
 cle = A_REMPLACER_PAR_LA_CLE_DU_FICHIER_ENVIRagent
+
+; --- plusieurs sites : supprimer url_projet et cle ci-dessus et décommenter une section par site ---
+; [site theBand]
+; url_projet = https://www.kontouma.fr/theBand/
+; cle = A_REMPLACER_PAR_LA_CLE_DE_theBand/ENVIRagent.txt
+; [site training]
+; url_projet = https://www.kontouma.fr/training/
+; cle = A_REMPLACER_PAR_LA_CLE_DE_training/ENVIRagent.txt
+; (les réglages suivants restent dans [agent] : placer les sections [site ...] à la fin du fichier)
 
 ; nom du PC affiché sur le site (vide = nom Windows du PC)
 nom_agent =
