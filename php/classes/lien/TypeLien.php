@@ -23,8 +23,10 @@ class TypeLien
     //table commune à toutes les applications (sans préfixe) : contenu de référence dans sh_lien_type.sql
     public const TABLE  = "sh_lien_type";
     //types de lien
-    public const MP3 = 1;
-    public const MP3TB = 18;    //mp3 enregistré par le groupe
+    public const MP3ORI = 1;     //mp3 original : un seul par titre, pistes multipistes avec la tona de scène
+    public const MP3JOU = 18;    //mp3 joué (enregistré) par le groupe : un seul par titre, pistes multipistes sans correction
+    public const MP3 = 19;       //autre mp3 : jamais transformé
+    public const TYPES_MP3_UNIQUES = [self::MP3ORI, self::MP3JOU];    //un seul lien de chacun de ces types par titre
     public const MP4 = 29;
     public const SITE = 4;
     public const PAD = 28;

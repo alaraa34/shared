@@ -47,7 +47,7 @@ class Multipiste
     //un agent qui n'a pas contacté le site depuis ce délai est considéré comme arrêté (il appelle toutes les 30 s)
     public const int DELAI_AGENT_ACTIF_SECONDES = 120;
     //types de lien dont on peut générer les pistes
-    public const array TYPES_SOURCE = [TypeLien::MP3, TypeLien::MP3TB];
+    public const array TYPES_SOURCE = [TypeLien::MP3ORI, TypeLien::MP3JOU];
 
     //------------------------------------------------------------------------------------------------
     //ETATS
