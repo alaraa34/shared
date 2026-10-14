@@ -60,7 +60,7 @@ class User extends Mere{
     
     public static function deconnecter(){
     //deconnexion du user si il est connecté
-        if(self::userConnecte()){unset($_SESSION['LOGGED_USER']);}
+        if(self::userConnecte()){unset($_SESSION['LOGGED_USER'], $_SESSION[Menu::SESSION_MENU]);}
     }
     
     public static function listeTous():array{
@@ -127,6 +127,9 @@ class User extends Mere{
                                     'prenom'=>$this->prenom,
                                     'avatar'=>$this->avatar,
                                     'administrateur'=>$administrateur];
+        //le menu en session a été construit sans utilisateur : il est reconstruit à l'affichage suivant
+        //(menus administrateurs visibles dès la connexion)
+        unset($_SESSION[Menu::SESSION_MENU]);
         return true;
     }
 
