@@ -127,6 +127,9 @@ class Toolbox_upload {
     public static function uploadDeleteFile(string $url) :bool {
     //Supprime un fichier à partir de son URL
         //$url ss la forme  ./fichiers/mp3d/The Communards - Don't Leave Me This Way (with Sarah Jane Morris) [Official Video].mp3
+        //fichier déjà absent (supprimé à la main, renommé...) : rien à faire, ce n'est pas une erreur
+        //sinon le lien ne pourrait plus jamais être supprimé
+        if (!file_exists($url)) {return true;}
         return @unlink($url);
     }
 
