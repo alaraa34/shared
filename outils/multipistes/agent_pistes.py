@@ -40,6 +40,7 @@ from datetime import datetime
 from pathlib import Path
 
 DOSSIER = Path(__file__).resolve().parent
+REVISION = "14/10/2026 b"  # affichée au démarrage : permet de vérifier quelle copie de l'agent tourne
 VERSION = 2  # 2 : transposition (tona de scène) ; le site refuse les travaux de transposition aux agents plus anciens
 
 
@@ -316,7 +317,8 @@ class Agent:
 def tourner(agents, une_fois):
     """interroge les sites à tour de rôle ; un seul traitement à la fois sur le PC"""
     for agent in agents:
-        journal(f"{agent.prefixe()}Agent {agent.nom} (version {VERSION}) démarré sur {agent.url_projet}")
+        journal(f"{agent.prefixe()}Agent {agent.nom} (version {VERSION}, révision {REVISION}) démarré sur {agent.url_projet}")
+    journal(f"Programme : {Path(__file__).resolve()}")
     journal("Ctrl+C pour arrêter")
     while True:
         travail = False
