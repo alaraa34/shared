@@ -122,6 +122,40 @@ class MultipisteControle
     }
 
     //------------------------------------------------------------------------------------------------
+    //MODIFICATION DE LA TONA DE SCENE D'UN TITRE (écran de détail, shared/js/confirmationTona.js)
+    //-----------------------------------------------------------------------------------------------
+    public const string CHAMP_CONFIRMATION_TONA = "confirmationTona";
+
+    public static function confirmationTonaHtml(int $idTitre, string $tonaActuelle, string $message): array {
+    //pour la liste de choix de la tona de scène d'un titre existant : attributs à placer dans le <select>
+    //et champ caché à placer dans le formulaire ; rien pour un nouveau titre
+        if ($idTitre <= 0) {return ['attributs'=>'', 'champ'=>''];}
+        return ['attributs'=>' data-tona-initiale="' . htmlspecialchars(trim($tonaActuelle), ENT_QUOTES)
+                           . '" data-tona-message="' . htmlspecialchars($message, ENT_QUOTES) . '"',
+                'champ'=>'<input type="hidden" name="' . self::CHAMP_CONFIRMATION_TONA . '" value="0" />'];
+    }
+
+    public static function tonaSceneAEnregistrer(string $ancienne, string $saisie): array {
+    //tona saisie pour un titre existant : changée seulement si l'utilisateur a répondu oui au message
+    //retour : tona à enregistrer, modifiee (changement confirmé), refusee (changement demandé mais non confirmé)
+        $change = (int)trim($ancienne) !== (int)trim($saisie);
+        $confirme = TbAdressage::getPost("S", self::CHAMP_CONFIRMATION_TONA) === "1";
+        if (!$change) {return ['tona'=>$saisie, 'modifiee'=>false, 'refusee'=>false];}
+        if (!$confirme) {return ['tona'=>$ancienne, 'modifiee'=>false, 'refusee'=>true];}
+        return ['tona'=>$saisie, 'modifiee'=>true, 'refusee'=>false];
+    }
+
+    public static function messageTonaScene(array $decision, array $bilan): string {
+    //complément du message d'enregistrement d'un titre
+        if ($decision['refusee']) {return " (tona de scène non modifiée)";}
+        if (!$decision['modifiee']) {return "";}
+        $details = [];
+        if ($bilan['originaux'] > 0) {$details[] = "pistes transposées supprimées, à regénérer";}
+        if ($bilan['joues'] > 0) {$details[] = $bilan['joues'] . " mp3 joué supprimé";}
+        return count($details) > 0 ? " (tona modifiée : " . implode(", ", $details) . ")" : "";
+    }
+
+    //------------------------------------------------------------------------------------------------
     //POINTS D'ENTREE DE L'AGENT (POST, réponse JSON, sans session ni layout)
     //Tous reçoivent cle (contenu de ENVIRagent.txt du projet), agent (nom du PC) et version
     //Une piste arrive en formulaire de fichier, ou par morceaux (position, taille, donnees en base64)

@@ -144,6 +144,48 @@ class Multipiste
         }
     }
 
+    public static function supprimerPistesTransposees(int $idLien, int $nouvelleTona): void {
+    //tona de scène modifiée : les versions transposées (t+2, t-1...) ne servent plus et sont supprimées ;
+    //les pistes t0 restent (la nouvelle transposition se refait en quelques secondes à partir d'elles)
+        foreach (glob(TbUpload::fichierPath() . self::REPERTOIRE . "/" . $idLien . "/t*", GLOB_ONLYDIR) ?: [] as $dossier) {
+            if (basename($dossier) === self::dossierTona(0)) {continue;}
+            self::viderRepertoire($dossier);
+            @rmdir($dossier);
+        }
+        $ligne = Model::mdRequeteListerUnique("SELECT statut FROM " . self::TABLE . " WHERE idLien=?", [$idLien]);
+        if (count($ligne) === 0) {return;}
+        if ((int)$ligne['statut'] === self::A_TRAITER) {
+            //demande pas encore prise par un agent : elle produira directement la nouvelle tona
+            Model::mdUpdate(self::TABLE, ['tona'=>max(-12, min(12, $nouvelleTona))], "idLien=" . $idLien);
+        }
+        elseif ((int)$ligne['statut'] === self::TERMINE && self::pistesCompletes($idLien, 0)) {
+            //il ne reste que les pistes d'origine : vert si la nouvelle tona est 0, sinon « à transposer » (rouge)
+            Model::mdUpdate(self::TABLE, ['tona'=>0, 'message'=>''], "idLien=" . $idLien);
+        }
+    }
+
+    public static function tonaSceneModifiee(array $liens, int $nouvelleTona, string $tableAssociation): array {
+    //conséquences d'une tona de scène modifiée sur les liens MP3 d'un titre ($liens : id, idTypeLien) :
+    //  MP3 original : pistes transposées supprimées (t0 gardé) ; MP3 joué : lien supprimé (fichier, pistes, association)
+    //retour : nombre de MP3 originaux nettoyés et de MP3 joués supprimés
+        $bilan = ['originaux'=>0, 'joues'=>0];
+        foreach ($liens as $ligne) {
+            $idLien = (int)$ligne['id'];
+            if ((int)$ligne['idTypeLien'] === TypeLien::MP3ORI) {
+                self::supprimerPistesTransposees($idLien, $nouvelleTona);
+                $bilan['originaux']++;
+            }
+            elseif ((int)$ligne['idTypeLien'] === TypeLien::MP3JOU) {
+                $lien = new Lien($idLien);
+                if ($lien->delete()) {
+                    Model::mdDelete($tableAssociation, ['idLien'=>$idLien]);
+                    $bilan['joues']++;
+                }
+            }
+        }
+        return $bilan;
+    }
+
     //------------------------------------------------------------------------------------------------
     //LECTEUR (affichage du lecteur multipiste ; comportement dans shared/js/multipiste.js)
     //-----------------------------------------------------------------------------------------------
