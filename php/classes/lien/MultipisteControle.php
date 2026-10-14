@@ -124,6 +124,8 @@ class MultipisteControle
     //------------------------------------------------------------------------------------------------
     //POINTS D'ENTREE DE L'AGENT (POST, réponse JSON, sans session ni layout)
     //Tous reçoivent cle (contenu de ENVIRagent.txt du projet), agent (nom du PC) et version
+    //Une piste arrive en formulaire de fichier, ou par morceaux (position, taille, donnees en base64)
+    //quand le pare-feu de l'hébergeur refuse les formulaires de fichier
     //-----------------------------------------------------------------------------------------------
     public static function agentProchain(): never {
     //prochain MP3 à traiter : {"idLien":0} s'il n'y a rien
@@ -132,11 +134,21 @@ class MultipisteControle
     }
 
     public static function agentRecevoir(): never {
-    //réception d'une piste : idLien, piste (vocals, drums...), tona (0 = pistes d'origine), fichier
+    //réception d'une piste : idLien, piste (vocals, drums...), tona (0 = pistes d'origine),
+    //et fichier ou morceau (position, taille du fichier, donnees en base64)
         $agent = self::agentControler();
-        $erreur = Multipiste::agentRecevoir(TbAdressage::getPost("I", "idLien"), $agent,
-                                            TbAdressage::getPost("S", "piste"), $_FILES['fichier'] ?? [],
-                                            TbAdressage::getPost("I", "tona"));
+        $donnees = TbAdressage::getPost("S", "donnees");
+        if ($donnees !== "") {
+            $erreur = Multipiste::agentRecevoirMorceau(TbAdressage::getPost("I", "idLien"), $agent,
+                                                       TbAdressage::getPost("S", "piste"), TbAdressage::getPost("I", "tona"),
+                                                       TbAdressage::getPost("I", "position"), TbAdressage::getPost("I", "taille"),
+                                                       base64_decode($donnees, true));
+        }
+        else {
+            $erreur = Multipiste::agentRecevoir(TbAdressage::getPost("I", "idLien"), $agent,
+                                                TbAdressage::getPost("S", "piste"), $_FILES['fichier'] ?? [],
+                                                TbAdressage::getPost("I", "tona"));
+        }
         self::agentRepondre(['ok'=>$erreur === "", 'message'=>$erreur], $erreur === "" ? 200 : 400);
     }
 

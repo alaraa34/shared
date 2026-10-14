@@ -8,6 +8,9 @@ Tourne sur un PC où Demucs est installé. En boucle :
      (filtre rubberband : la hauteur change, pas le tempo ; batterie recopiée telle quelle)
   4. renvoie les pistes une par une au site, puis signale la fin (icône verte) ou l'erreur
 Quand seule la tona de scène a changé, l'agent réutilise les pistes d'origine du site (quelques secondes).
+Si le pare-feu de l'hébergeur refuse l'envoi des pistes en fichier, elles sont envoyées par petits morceaux.
+Si l'envoi échoue après la séparation, les pistes séparées sont gardées (dossier_travail/conserve) :
+au nouvel essai du même MP3, la séparation n'est pas refaite.
 
 Utilisation (dans l'environnement virtuel où Demucs est installé) :
     python agent_pistes.py              tourne en boucle jusqu'à Ctrl+C
@@ -19,7 +22,9 @@ l'agent les interroge à tour de rôle et ne fait qu'un traitement à la fois.
 Seule la bibliothèque standard de Python est utilisée, en plus de Demucs.
 """
 import argparse
+import base64
 import configparser
+import filecmp
 import json
 import re
 import shutil
@@ -42,8 +47,15 @@ def journal(message):
     print(f"{datetime.now():%d/%m %H:%M:%S}  {message}", flush=True)
 
 
+CONSERVATION_JOURS = 7  # pistes séparées gardées après un envoi raté (au-delà, supprimées)
+CODES_PARE_FEU = (403, 406)  # refus typiques du pare-feu applicatif de l'hébergeur (mod_security)
+TAILLE_MORCEAU = 60000  # envoi par morceaux : octets par appel (en base64 ~80 Ko, sous les limites des pare-feux)
+
+
 class ErreurAgent(Exception):
-    pass
+    def __init__(self, message, code=0):
+        super().__init__(message)
+        self.code = code
 
 
 class Agent:
@@ -63,6 +75,7 @@ class Agent:
         self.options_demucs = section.get("options_demucs", "").split()
         self.ffmpeg = section.get("ffmpeg", "ffmpeg").strip() or "ffmpeg"
         self._rubberband = None  # ffmpeg dispose-t-il du filtre rubberband ? (vérifié au premier besoin)
+        self.envoi_morceaux = False  # True : pistes envoyées par morceaux (pare-feu qui refuse les formulaires de fichier)
         if len(self.cle) < 20:
             raise ErreurAgent(f"{self.prefixe()}La clé (cle) doit faire au moins 20 caractères : celle du fichier ENVIRagent.txt du site")
 
@@ -76,6 +89,8 @@ class Agent:
     def _lire_reponse(self, requete, delai):
         # certains hébergeurs refusent l'identité par défaut de Python (Python-urllib)
         requete.add_header("User-Agent", f"Mozilla/5.0 (compatible; agent_pistes/{VERSION})")
+        requete.add_header("Accept", "application/json, text/plain, */*")
+        requete.add_header("Accept-Language", "fr-FR,fr;q=0.9")
         texte = ""
         adresse = requete.full_url
         try:
@@ -89,7 +104,7 @@ class Agent:
                 message = json.loads(texte).get("message", texte)
             except ValueError:
                 message = " ".join(re.sub(r"<[^>]+>", " ", texte).split())[:300]
-            raise ErreurAgent(f"Le site a répondu {erreur.code} : {message}") from None
+            raise ErreurAgent(f"Le site a répondu {erreur.code} : {message}", erreur.code) from None
         except ValueError:
             # page HTML ou message PHP au lieu du JSON : on montre l'adresse réellement appelée et le début de la réponse
             debut = " ".join(re.sub(r"<[^>]+>", " ", texte).split())[:300]
@@ -104,9 +119,34 @@ class Agent:
         return self._lire_reponse(requete, delai)
 
     def envoyer_fichier(self, fonction, champs, chemin, delai=300):
+        """envoi d'une piste : formulaire de fichier (un seul appel) ; si le pare-feu de l'hébergeur le refuse,
+        envoi par morceaux en base64 dans des formulaires simples (comme les autres appels), mode gardé pour ce site"""
+        if not self.envoi_morceaux:
+            try:
+                reponse = self._envoyer_formulaire(fonction, champs, chemin, delai)
+                if not reponse.get("ok"):
+                    raise ErreurAgent(reponse.get("message", "envoi refusé"))
+                return
+            except ErreurAgent as erreur:
+                if erreur.code not in CODES_PARE_FEU:
+                    raise
+                journal(f"{self.prefixe()}Envoi de fichier refusé par le pare-feu du site ({erreur.code}) : "
+                        "envoi par morceaux, gardé pour la suite")
+                self.envoi_morceaux = True
+        self._envoyer_morceaux(fonction, champs, chemin)
+
+    def _envoyer_morceaux(self, fonction, champs, chemin):
+        contenu = chemin.read_bytes()
+        for position in range(0, len(contenu), TAILLE_MORCEAU):
+            morceau = base64.b64encode(contenu[position:position + TAILLE_MORCEAU]).decode("ascii")
+            reponse = self.appeler(fonction, {**champs, "position": position, "taille": len(contenu), "donnees": morceau})
+            if not reponse.get("ok"):
+                raise ErreurAgent(reponse.get("message", "envoi refusé"))
+
+    def _envoyer_formulaire(self, fonction, champs, chemin, delai):
         limite = uuid.uuid4().hex
         morceaux = []
-        for nom, valeur in {"cle": self.cle, "agent": self.nom, **champs}.items():
+        for nom, valeur in {"cle": self.cle, "agent": self.nom, "version": VERSION, **champs}.items():
             morceaux.append(f'--{limite}\r\nContent-Disposition: form-data; name="{nom}"\r\n\r\n{valeur}\r\n'.encode("utf-8"))
         morceaux.append(f'--{limite}\r\nContent-Disposition: form-data; name="fichier"; filename="{chemin.name}"\r\n'
                         f'Content-Type: audio/mpeg\r\n\r\n'.encode("utf-8"))
@@ -114,16 +154,29 @@ class Agent:
         morceaux.append(f"\r\n--{limite}--\r\n".encode("utf-8"))
         requete = urllib.request.Request(self._url(fonction), data=b"".join(morceaux), method="POST",
                                          headers={"Content-Type": f"multipart/form-data; boundary={limite}"})
-        reponse = self._lire_reponse(requete, delai)
-        if not reponse.get("ok"):
-            raise ErreurAgent(reponse.get("message", "envoi refusé"))
+        return self._lire_reponse(requete, delai)
 
     # ------------------------------------------------------------------ traitement
+    def dossier_conserve(self, id_lien):
+        """pistes séparées gardées après un envoi raté, pour ne pas refaire la séparation"""
+        site = re.sub(r"[^A-Za-z0-9_-]", "_", self.site or "site")
+        return self.travail / "conserve" / f"{site}_{id_lien}"
+
+    def nettoyer_conserve(self):
+        racine = self.travail / "conserve"
+        if not racine.is_dir():
+            return
+        limite = time.time() - CONSERVATION_JOURS * 86400
+        for dossier in racine.iterdir():
+            if dossier.is_dir() and dossier.stat().st_mtime < limite:
+                shutil.rmtree(dossier, ignore_errors=True)
+
     def traiter(self, tache):
         id_lien = tache["idLien"]
         dossier = self.travail / str(id_lien)
         shutil.rmtree(dossier, ignore_errors=True)
         dossier.mkdir(parents=True)
+        self.nettoyer_conserve()
         debut = time.time()
         try:
             tona = int(tache.get("tona", 0))
@@ -148,6 +201,7 @@ class Agent:
             self.appeler("pistesAgentTerminer", {"idLien": id_lien, "succes": 1, "message": "",
                                                  "modele": self.modele, "duree": duree})
             journal(f"{self.prefixe()}Lien {id_lien} : terminé en {duree // 60} min {duree % 60:02d} s")
+            shutil.rmtree(self.dossier_conserve(id_lien), ignore_errors=True)
         except Exception as erreur:  # on signale toute erreur au site pour que l'icône passe en rouge
             message = str(erreur) or erreur.__class__.__name__
             journal(f"{self.prefixe()}Lien {id_lien} : ERREUR {message}")
@@ -171,7 +225,13 @@ class Agent:
         id_lien = tache["idLien"]
         source = dossier / "source.mp3"
         journal(f"{self.prefixe()}Lien {id_lien} : téléchargement de {urllib.parse.unquote(tache['chemin'])}")
-        urllib.request.urlretrieve(self.url_projet + tache["chemin"], source)
+        self.telecharger(self.url_projet + tache["chemin"], source)
+
+        conserve = self.dossier_conserve(id_lien)
+        if (conserve / "source.mp3").is_file() and filecmp.cmp(source, conserve / "source.mp3", shallow=False) \
+                and all((conserve / "pistes" / f"{piste}.mp3").is_file() for piste in tache["pistes"]):
+            journal(f"{self.prefixe()}Lien {id_lien} : pistes déjà séparées lors d'un essai précédent, réutilisées")
+            return conserve / "pistes"
 
         journal(f"{self.prefixe()}Lien {id_lien} : séparation avec {self.modele} (plusieurs minutes)...")
         commande = [sys.executable, "-m", "demucs", "-n", self.modele, "--mp3",
@@ -185,6 +245,10 @@ class Agent:
         for piste in tache["pistes"]:
             if not (sortie / f"{piste}.mp3").is_file():
                 raise ErreurAgent(f"Piste {piste} absente de la sortie de Demucs")
+        # copie gardée tant que le traitement n'est pas terminé (réutilisée si l'envoi échoue)
+        shutil.rmtree(conserve, ignore_errors=True)
+        shutil.copytree(sortie, conserve / "pistes")
+        shutil.copyfile(source, conserve / "source.mp3")
         return sortie
 
     def telecharger_origine(self, tache, dossier):
@@ -193,8 +257,15 @@ class Agent:
         origine.mkdir()
         journal(f"{self.prefixe()}Lien {tache['idLien']} : récupération des pistes d'origine")
         for piste, chemin in tache["cheminsT0"].items():
-            urllib.request.urlretrieve(self.url_projet + chemin, origine / f"{piste}.mp3")
+            self.telecharger(self.url_projet + chemin, origine / f"{piste}.mp3")
         return origine
+
+    def telecharger(self, url, destination, delai=300):
+        """téléchargement d'un fichier du site, avec la même identité que les autres appels (pare-feu)"""
+        requete = urllib.request.Request(url, headers={"User-Agent": f"Mozilla/5.0 (compatible; agent_pistes/{VERSION})",
+                                                       "Accept": "*/*"})
+        with urllib.request.urlopen(requete, timeout=delai) as reponse, open(destination, "wb") as fichier:
+            shutil.copyfileobj(reponse, fichier)
 
     def envoyer_piste(self, id_lien, piste, fichier, tona):
         dossier = "t0" if tona == 0 else f"t{tona:+d}"

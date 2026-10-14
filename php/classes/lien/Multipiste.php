@@ -300,11 +300,8 @@ class Multipiste
 
     public static function agentRecevoir(int $idLien, string $agent, string $piste, array $fichier, int $tona = 0): string {
     //enregistre une piste envoyée par l'agent (tona 0 = pistes d'origine) ; retourne "" si ok, sinon le message d'erreur
-        self::agentSignalerPresence($agent);
-        if (!array_key_exists($piste, self::PISTES)) {return "Piste inconnue";}
-        $ligne = self::agentLigneEnCours($idLien, $agent);
-        if ($ligne === null) {return "Ce fichier n'est pas en cours de traitement par cet agent";}
-        if ($tona !== 0 && $tona !== (int)$ligne['tona']) {return "Transposition non demandée";}
+        $erreur = self::agentControlerReception($idLien, $agent, $piste, $tona);
+        if ($erreur !== "") {return $erreur;}
         if (($fichier['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
             return "Envoi refusé par le serveur (code " . ($fichier['error'] ?? '?') . ", taille maximale " . ini_get('upload_max_filesize') . ")";
         }
@@ -313,6 +310,40 @@ class Multipiste
         if (!move_uploaded_file($fichier['tmp_name'], $repertoire . "/" . $piste . ".mp3")) {
             return "Impossible d'enregistrer la piste";
         }
+        return "";
+    }
+
+    public static function agentRecevoirMorceau(int $idLien, string $agent, string $piste, int $tona,
+                                                int $position, int $taille, string|false $donnees): string {
+    //enregistre un morceau de piste (envoi par morceaux quand le pare-feu refuse les fichiers) :
+    //les morceaux arrivent dans l'ordre et sont ajoutés à <piste>.mp3.part, renommé en <piste>.mp3 au dernier
+        $erreur = self::agentControlerReception($idLien, $agent, $piste, $tona);
+        if ($erreur !== "") {return $erreur;}
+        if ($donnees === false || $donnees === "" || $position < 0 || $position + strlen($donnees) > $taille) {
+            return "Morceau de piste invalide";
+        }
+        $repertoire = self::repertoire($idLien, $tona);
+        if (!TbUpload::uploadIsDirOrCreateIt($repertoire)) {return "Impossible de créer le dossier des pistes";}
+        $partiel = $repertoire . "/" . $piste . ".mp3.part";
+        clearstatcache(true, $partiel);
+        $recu = $position === 0 ? 0 : (is_file($partiel) ? (int)filesize($partiel) : -1);
+        if ($recu !== $position) {return "Morceau inattendu (position " . $position . ", reçu " . max(0, $recu) . " octets)";}
+        if (file_put_contents($partiel, $donnees, $position === 0 ? 0 : FILE_APPEND) !== strlen($donnees)) {
+            return "Impossible d'enregistrer le morceau de piste";
+        }
+        if ($position + strlen($donnees) === $taille && !rename($partiel, $repertoire . "/" . $piste . ".mp3")) {
+            return "Impossible d'enregistrer la piste";
+        }
+        return "";
+    }
+
+    private static function agentControlerReception(int $idLien, string $agent, string $piste, int $tona): string {
+    //contrôles communs à la réception d'une piste (fichier ou morceau) ; "" si tout va bien
+        self::agentSignalerPresence($agent);
+        if (!array_key_exists($piste, self::PISTES)) {return "Piste inconnue";}
+        $ligne = self::agentLigneEnCours($idLien, $agent);
+        if ($ligne === null) {return "Ce fichier n'est pas en cours de traitement par cet agent";}
+        if ($tona !== 0 && $tona !== (int)$ligne['tona']) {return "Transposition non demandée";}
         return "";
     }
 
