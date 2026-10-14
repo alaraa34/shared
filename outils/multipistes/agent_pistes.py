@@ -21,6 +21,7 @@ Seule la bibliothèque standard de Python est utilisée, en plus de Demucs.
 import argparse
 import configparser
 import json
+import re
 import shutil
 import socket
 import subprocess
@@ -73,18 +74,28 @@ class Agent:
         return f"{self.url_projet}index.php?fct={fonction}&ctr=song"
 
     def _lire_reponse(self, requete, delai):
+        # certains hébergeurs refusent l'identité par défaut de Python (Python-urllib)
+        requete.add_header("User-Agent", f"Mozilla/5.0 (compatible; agent_pistes/{VERSION})")
+        texte = ""
+        adresse = requete.full_url
         try:
             with urllib.request.urlopen(requete, timeout=delai) as reponse:
-                return json.loads(reponse.read().decode("utf-8"))
+                adresse = reponse.geturl()
+                texte = reponse.read().decode("utf-8", "replace")
+                return json.loads(texte)
         except urllib.error.HTTPError as erreur:
             texte = erreur.read().decode("utf-8", "replace")
             try:
                 message = json.loads(texte).get("message", texte)
             except ValueError:
-                message = texte[:300]
+                message = " ".join(re.sub(r"<[^>]+>", " ", texte).split())[:300]
             raise ErreurAgent(f"Le site a répondu {erreur.code} : {message}") from None
         except ValueError:
-            raise ErreurAgent("Réponse du site illisible (pas du JSON) : vérifier url_projet") from None
+            # page HTML ou message PHP au lieu du JSON : on montre l'adresse réellement appelée et le début de la réponse
+            debut = " ".join(re.sub(r"<[^>]+>", " ", texte).split())[:300]
+            raise ErreurAgent(f"Réponse du site illisible (pas du JSON) : vérifier url_projet\n"
+                              f"    adresse appelée : {adresse}\n"
+                              f"    début de la réponse : {debut or '(vide)'}") from None
 
     def appeler(self, fonction, champs=None, delai=60):
         donnees = {"cle": self.cle, "agent": self.nom, "version": VERSION, **(champs or {})}
