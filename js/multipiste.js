@@ -5,8 +5,18 @@
 // Fonctionne aussi pour une liste rechargée en ajax (événements délégués sur le document)
 (function () {
     "use strict";
-    const ECART_MAX = 0.08;          // décalage toléré entre pistes (secondes) avant resynchronisation
+    // Synchronisation : une piste décalée est rattrapée en douceur (vitesse légèrement modifiée pendant
+    // une ou deux secondes) ; elle n'est repositionnée (saut, audible) que si le décalage devient important.
+    // Sur smartphone la position des pistes est moins précise : des repositionnements fréquents
+    // provoquaient de brèves interruptions.
+    const ECART_TOLERE = 0.04;       // décalage ignoré (secondes)
+    const ECART_RATTRAPE = 0.01;     // un rattrapage commencé continue jusqu'à ce décalage
+    const ECART_SAUT = 0.4;          // au-delà : repositionnement immédiat de la piste
+    const CORRECTION_MAX = 0.05;     // vitesse de rattrapage : 0,95 à 1,05
+    const DUREE_RATTRAPAGE = 2;      // secondes pour résorber un décalage
+    const DELAI_ATTENTE = 400;       // une piste « en attente » moins longtemps que ça ne bloque pas les autres (ms)
     const PERIODE_SYNCHRO = 250;     // vérification du décalage (millisecondes)
+    const ECART_MAX = ECART_TOLERE;  // départ et reprise : pistes repositionnées si l'écart dépasse ce seuil
     const lecteurs = new WeakMap();  // élément .mp-lecteur -> état
     let lecteurActif = null;
 
@@ -90,6 +100,7 @@
         etat.joue = false;
         etat.attente.clear();
         clearInterval(etat.minuteur);
+        vitesseNormale(etat);
         for (const audio of etat.audios) {
             audio.pause();
             if (retourDebut) { audio.currentTime = 0; }
@@ -102,6 +113,7 @@
 
     function suspendre(etat) {
         // une piste n'a pas assez de données : toutes attendent pour rester ensemble
+        vitesseNormale(etat);
         for (const audio of etat.audios) { if (!audio.paused) { audio.pause(); } }
         icone(etat, "attente");
     }
@@ -117,9 +129,14 @@
     }
 
     function surAttente(etat, audio) {
+        // une brève attente de données (fréquente sur smartphone) ne doit pas interrompre les autres pistes :
+        // on ne suspend que si la piste manque encore de données après DELAI_ATTENTE
         if (!etat.joue) { return; }
-        etat.attente.add(audio);
-        suspendre(etat);
+        setTimeout(function () {
+            if (!etat.joue || audio.readyState >= 3 || !etat.audios.includes(audio)) { return; }
+            etat.attente.add(audio);
+            suspendre(etat);
+        }, DELAI_ATTENTE);
     }
 
     function surPret(etat, audio) {
@@ -142,19 +159,36 @@
         else if (etat.joue && etat.attente.size === 0) { reprendre(etat); }
     }
 
+    function vitesseNormale(etat) {
+        for (const audio of etat.audios) { if (audio.playbackRate !== 1) { audio.playbackRate = 1; } }
+    }
+
     function resynchroniser(etat) {
         // lecteur retiré de la page (autre titre affiché, liste rechargée) : on arrête la musique
         if (!etat.el.isConnected) { arreter(etat, false); return; }
         if (!etat.joue || etat.attente.size > 0) { return; }
         const m = maitre(etat);
+        if (m.paused || m.seeking) { return; }
         for (const audio of etat.audios) {
-            if (audio !== m && Math.abs(audio.currentTime - m.currentTime) > ECART_MAX) {
+            if (audio === m || audio.seeking) { continue; }
+            const ecart = audio.currentTime - m.currentTime;   // > 0 : la piste est en avance
+            if (Math.abs(ecart) > ECART_SAUT) {
+                audio.playbackRate = 1;
                 audio.currentTime = m.currentTime;
+            }
+            else if (Math.abs(ecart) > (audio.playbackRate !== 1 ? ECART_RATTRAPE : ECART_TOLERE)) {
+                const correction = Math.max(-CORRECTION_MAX, Math.min(CORRECTION_MAX, ecart / DUREE_RATTRAPAGE));
+                // jamais exactement 1 pendant un rattrapage (1 signifie « pas de rattrapage en cours »)
+                audio.playbackRate = Math.abs(correction) < 0.002 ? 1 - Math.sign(correction) * 0.002 : 1 - correction;
+            }
+            else if (audio.playbackRate !== 1) {
+                audio.playbackRate = 1;
             }
         }
     }
 
     function deplacer(etat, temps) {
+        vitesseNormale(etat);
         for (const audio of etat.audios) { audio.currentTime = temps; }
         majPosition(etat, false);
     }
