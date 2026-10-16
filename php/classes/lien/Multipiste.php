@@ -367,13 +367,18 @@ class Multipiste
         $repertoire = self::repertoire($idLien, $tona);
         if (!TbUpload::uploadIsDirOrCreateIt($repertoire)) {return "Impossible de créer le dossier des pistes";}
         $partiel = $repertoire . "/" . $piste . ".mp3.part";
-        clearstatcache(true, $partiel);
+        $complet = $repertoire . "/" . $piste . ".mp3";
+        $fin = $position + strlen($donnees);
+        clearstatcache();
+        //morceau renvoyé par l'agent après une coupure (réponse perdue) : déjà reçu, rien à refaire
+        if ($position > 0 && is_file($partiel) && (int)filesize($partiel) === $fin) {return "";}
+        if ($position > 0 && $fin === $taille && !is_file($partiel) && is_file($complet) && (int)filesize($complet) === $taille) {return "";}
         $recu = $position === 0 ? 0 : (is_file($partiel) ? (int)filesize($partiel) : -1);
         if ($recu !== $position) {return "Morceau inattendu (position " . $position . ", reçu " . max(0, $recu) . " octets)";}
         if (file_put_contents($partiel, $donnees, $position === 0 ? 0 : FILE_APPEND) !== strlen($donnees)) {
             return "Impossible d'enregistrer le morceau de piste";
         }
-        if ($position + strlen($donnees) === $taille && !rename($partiel, $repertoire . "/" . $piste . ".mp3")) {
+        if ($fin === $taille && !rename($partiel, $complet)) {
             return "Impossible d'enregistrer la piste";
         }
         return "";
@@ -392,7 +397,12 @@ class Multipiste
     public static function agentTerminer(int $idLien, string $agent, bool $succes, string $message, array $infos = []): string {
     //clôture un traitement ; retourne "" si ok, sinon le message d'erreur
         $ligne = self::agentLigneEnCours($idLien, $agent);
-        if ($ligne === null) {return "Ce fichier n'est pas en cours de traitement par cet agent";}
+        if ($ligne === null) {
+            //fin renvoyée par l'agent après une coupure (réponse perdue) : déjà enregistrée
+            $actuelle = Model::mdRequeteListerUnique("SELECT statut, agent FROM " . self::TABLE . " WHERE idLien=?", [$idLien]);
+            if ($succes && count($actuelle) > 0 && (int)$actuelle['statut'] === self::TERMINE && $actuelle['agent'] === $agent) {return "";}
+            return "Ce fichier n'est pas en cours de traitement par cet agent";
+        }
         $tona = (int)$ligne['tona'];
         $url = (string)(Model::mdRequeteListerUnique("SELECT url FROM " . Lien::TABLE . " WHERE id=?", [$idLien])['url'] ?? '');
         if ($succes) {

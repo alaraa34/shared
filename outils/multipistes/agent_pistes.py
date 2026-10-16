@@ -40,7 +40,7 @@ from datetime import datetime
 from pathlib import Path
 
 DOSSIER = Path(__file__).resolve().parent
-REVISION = "14/10/2026 b"  # affichée au démarrage : permet de vérifier quelle copie de l'agent tourne
+REVISION = "16/10/2026"  # affichée au démarrage : permet de vérifier quelle copie de l'agent tourne
 VERSION = 2  # 2 : transposition (tona de scène) ; le site refuse les travaux de transposition aux agents plus anciens
 
 
@@ -50,6 +50,8 @@ def journal(message):
 
 CONSERVATION_JOURS = 7  # pistes séparées gardées après un envoi raté (au-delà, supprimées)
 CODES_PARE_FEU = (403, 406)  # refus typiques du pare-feu applicatif de l'hébergeur (mod_security)
+CODES_TEMPORAIRES = (429, 500, 502, 503, 504)  # site momentanément indisponible : nouvel essai
+ATTENTES_REPRISE = (5, 15, 30, 60, 120)  # secondes d'attente avant chaque nouvel essai (5 essais de plus)
 TAILLE_MORCEAU = 60000  # envoi par morceaux : octets par appel (en base64 ~80 Ko, sous les limites des pare-feux)
 
 
@@ -113,6 +115,24 @@ class Agent:
                               f"    adresse appelée : {adresse}\n"
                               f"    début de la réponse : {debut or '(vide)'}") from None
 
+    def avec_reprises(self, action, quoi):
+        """exécute action() ; si le site est momentanément indisponible (503...) ou la connexion coupée,
+        nouvel essai après une attente croissante ; les autres erreurs remontent tout de suite"""
+        for essai, attente in enumerate((*ATTENTES_REPRISE, None), start=1):
+            try:
+                return action()
+            except ErreurAgent as erreur:
+                if erreur.code not in CODES_TEMPORAIRES or attente is None:
+                    raise
+                cause = f"le site a répondu {erreur.code}"
+            except OSError as erreur:  # connexion coupée, délai dépassé, site injoignable
+                if attente is None:
+                    raise ErreurAgent(f"Site injoignable ({quoi}) : {erreur}") from None
+                cause = f"connexion impossible ({erreur.__class__.__name__})"
+            journal(f"{self.prefixe()}{quoi} : {cause}, nouvel essai dans {attente} s "
+                    f"({essai}/{len(ATTENTES_REPRISE)})")
+            time.sleep(attente)
+
     def appeler(self, fonction, champs=None, delai=60):
         donnees = {"cle": self.cle, "agent": self.nom, "version": VERSION, **(champs or {})}
         corps = urllib.parse.urlencode(donnees).encode("utf-8")
@@ -124,7 +144,8 @@ class Agent:
         envoi par morceaux en base64 dans des formulaires simples (comme les autres appels), mode gardé pour ce site"""
         if not self.envoi_morceaux:
             try:
-                reponse = self._envoyer_formulaire(fonction, champs, chemin, delai)
+                reponse = self.avec_reprises(lambda: self._envoyer_formulaire(fonction, champs, chemin, delai),
+                                             f"envoi de {chemin.name}")
                 if not reponse.get("ok"):
                     raise ErreurAgent(reponse.get("message", "envoi refusé"))
                 return
@@ -140,7 +161,9 @@ class Agent:
         contenu = chemin.read_bytes()
         for position in range(0, len(contenu), TAILLE_MORCEAU):
             morceau = base64.b64encode(contenu[position:position + TAILLE_MORCEAU]).decode("ascii")
-            reponse = self.appeler(fonction, {**champs, "position": position, "taille": len(contenu), "donnees": morceau})
+            donnees = {**champs, "position": position, "taille": len(contenu), "donnees": morceau}
+            reponse = self.avec_reprises(lambda: self.appeler(fonction, donnees),
+                                         f"envoi de {chemin.name} ({position // 1024} Ko)")
             if not reponse.get("ok"):
                 raise ErreurAgent(reponse.get("message", "envoi refusé"))
 
@@ -199,8 +222,8 @@ class Agent:
                     self.envoyer_piste(id_lien, piste, destination, tona)
 
             duree = int(time.time() - debut)
-            self.appeler("pistesAgentTerminer", {"idLien": id_lien, "succes": 1, "message": "",
-                                                 "modele": self.modele, "duree": duree})
+            fin = {"idLien": id_lien, "succes": 1, "message": "", "modele": self.modele, "duree": duree}
+            self.avec_reprises(lambda: self.appeler("pistesAgentTerminer", fin), "fin du traitement")
             journal(f"{self.prefixe()}Lien {id_lien} : terminé en {duree // 60} min {duree % 60:02d} s")
             shutil.rmtree(self.dossier_conserve(id_lien), ignore_errors=True)
         except Exception as erreur:  # on signale toute erreur au site pour que l'icône passe en rouge
@@ -265,8 +288,14 @@ class Agent:
         """téléchargement d'un fichier du site, avec la même identité que les autres appels (pare-feu)"""
         requete = urllib.request.Request(url, headers={"User-Agent": f"Mozilla/5.0 (compatible; agent_pistes/{VERSION})",
                                                        "Accept": "*/*"})
-        with urllib.request.urlopen(requete, timeout=delai) as reponse, open(destination, "wb") as fichier:
-            shutil.copyfileobj(reponse, fichier)
+
+        def charger():
+            try:
+                with urllib.request.urlopen(requete, timeout=delai) as reponse, open(destination, "wb") as fichier:
+                    shutil.copyfileobj(reponse, fichier)
+            except urllib.error.HTTPError as erreur:
+                raise ErreurAgent(f"Téléchargement refusé ({erreur.code}) : {urllib.parse.unquote(url)}", erreur.code) from None
+        self.avec_reprises(charger, f"téléchargement de {Path(urllib.parse.unquote(url)).name}")
 
     def envoyer_piste(self, id_lien, piste, fichier, tona):
         dossier = "t0" if tona == 0 else f"t{tona:+d}"
