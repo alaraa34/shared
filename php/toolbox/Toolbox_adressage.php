@@ -34,37 +34,45 @@ class Toolbox_adressage {
     }
     
     public static function getControleurFonctionPrefixeFromCFPadress(string $adresseCFP) : array {
-     //le paramètre modal est sous la forme controleur;fonction;prefixe
-    // retourne le controleur, la fonction et le prefixe, si le préfixe n'est pas passé c'est le controleur
+    //l'adresse est sous la forme domaine;fonction;prefixe ou domaine/controleur;fonction;prefixe
+    //  ex song;editer            -> dom song, ctr song,       fonction songEditer
+    //     song/repertoire;editer -> dom song, ctr repertoire, fonction repertoireEditer
+    //     song;editer;repertoire -> dom song, ctr song,       fonction repertoireEditer
+    //controleur non donné : c'est le domaine ; préfixe non donné : c'est le controleur
         $tableau = explode(";",$adresseCFP);
-        $controleur = $tableau[0];
+        $domaineControleur = explode("/",$tableau[0]);
+        $domaine = $domaineControleur[0];
+        $controleur = $domaineControleur[1] ?? $domaine;
         $fonction =  $tableau[1];
-        //préfixe soit le controleur, soit le prefixe si il est donné
-        $prefixe = count($tableau)===2 ? $tableau[0] :  $tableau[2];
-        return ['controleur'=>$controleur,'fonction'=>$fonction,'prefixe'=>$prefixe];
+        $prefixe = count($tableau)===2 ? $controleur :  $tableau[2];
+        return ['domaine'=>$domaine,'controleur'=>$controleur,'fonction'=>$fonction,'prefixe'=>$prefixe];
     }
     
     public static function getURLControleurFromCFPAdress(string $adresseCFP):string {
-    //reourne le parametre de connection'URL d'une modale pour une modale, exemple http://localhost/TheBand/index.php?fct=repertoireConcert&ctr=song
-    //la zone modale est sous la forme controleur;fonction;prefixe ou controleur;fonction
-    //le nom est  est la fonction  etablissementMDLsupprimer avec le controleur avant MDL
-        $tableau = self::getControleurFonctionPrefixeFromCFPadress($adresseCFP); //retourne controleur et fonction
-        return Toolbox_adressage::getURLstatic($tableau['controleur'],$tableau['prefixe']. ucfirst($tableau['fonction']));
+    //retourne l'URL d'une adresse domaine[/controleur];fonction[;prefixe]
+    //exemple http://localhost/training/index.php?fct=repertoireChargerListe&dom=song&ctr=repertoire
+        $tableau = self::getControleurFonctionPrefixeFromCFPadress($adresseCFP);
+        return self::getURLstatic($tableau['domaine'],$tableau['prefixe']. ucfirst($tableau['fonction']),0,$tableau['controleur']);
     }
     
     
-    public static function getURLstatic(string $controleur, string $fonction,int $id=0):string{
-    // met en forme les paramètres  et ctrl et id pour les url lancées en dehors du menu
+    public static function getURLstatic(string $domaine, string $fonction, int $id=0, string $controleur=""):string{
+    // met en forme les paramètres fct, dom, ctr et id pour les url lancées en dehors du menu
+    // $controleur non fourni : c'est le domaine (un seul controleur dans le domaine)
     // appel shared\php\toolbox\Toolbox_adressage::getURLstatic("accueil","loginUser")
+    //       shared\php\toolbox\Toolbox_adressage::getURLstatic("song","editer",12,"setlist")
+    // fct reste en premier (Login teste "?fct=login" dans le referer)
+        $controleur = strlen($controleur)===0 ? $domaine : $controleur;
         $adresse = "index.php?" . Menu::FONCTION ."=". $fonction . 
+                    "&" . Menu::DOMAINE ."=" . $domaine .
                     "&" . Menu::CONTROLEUR ."=" . $controleur ;
         $adresse .=  $id===0 ? "" : "&id=".$id ;
         return $adresse;
     }
     
-    public static function urlControleur (string $controleur, string $fonction, array $parametres=[]) :string{
+    public static function urlControleur (string $domaine, string $fonction, array $parametres=[], string $controleur="") :string{
     // retourne l'url controleur pour un code action et des parametres
-        $url = self::urlServeur() . "/" .  self::getURLstatic($controleur,$fonction);
+        $url = self::urlServeur() . "/" .  self::getURLstatic($domaine,$fonction,0,$controleur);
         foreach ($parametres as $parametre){
             $url.= "&" . $parametre;
         }

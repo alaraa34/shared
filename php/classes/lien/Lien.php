@@ -160,9 +160,10 @@ class Lien
         return $retour;
     }
     
-    public function genererLienHref(){
+    public function genererLienHref(string $urlAudio = ''){
     //retourne <a class="$classe" href="$lien">$texte</a>
     //affiche la case URL du tableau des URL pour le lien uinstancié
+    //$urlAudio : MP3 de l'objet, sa durée fixe le temps de défilement d'un PDF (voir Lienhtml::urlAudio)
         $myhtml = '<a  ';
          //si classe 
         if (TbClasse::classeAttributValorise($this->typeLien,"couleur")) {
@@ -179,6 +180,11 @@ class Lien
   
         //fin
         $myhtml .= "</a>";    
+        //document PDF : icône qui ouvre le lecteur à défilement automatique (shared LecteurPdf)
+        if (LecteurPdf::estPdf($this->url)) {
+            $myhtml .= LecteurPdf::lien($this->url, '<h6>&nbsp;<i class="bi bi-chevron-double-down"></i>&nbsp;</h6>',
+                                        $this->description, urlAudio: $urlAudio);
+        }
         return $myhtml;
     }
     

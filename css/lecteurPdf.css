@@ -1,0 +1,21 @@
+/* Lecteur PDF à défilement automatique (shared\php\classes\lien\LecteurPdf) */
+.lecteur-pdf { position: relative; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; display: flex; flex-direction: column; width: 100%; height: 100%;
+               min-height: 300px; background: #3a3a3a; color: #fff; }
+.lecteur-pdf .lpdf-zone { flex: 1 1 auto; overflow-y: auto; overflow-x: hidden;
+               -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+.lecteur-pdf .lpdf-pages { width: 100%; max-width: 1100px; margin: 0 auto; }
+.lecteur-pdf .lpdf-pages canvas { display: block; width: 100%; height: auto; margin: 0 0 8px; background: #fff; }
+.lecteur-pdf .lpdf-message { text-align: center; padding: 2rem 1rem; font-size: 1.2rem; }
+.lecteur-pdf .lpdf-message:empty { display: none; }
+.lecteur-pdf .lpdf-barre { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; gap: 10px;
+               padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); background: rgba(0,0,0,.75); }
+.lecteur-pdf .lpdf-bouton { min-width: 48px; height: 48px; padding: 0 12px; border: 0; border-radius: 10px;
+               background: #555; color: #fff; font-size: 1.4rem; line-height: 48px; text-align: center;
+               text-decoration: none; cursor: pointer; touch-action: manipulation; user-select: none; }
+.lecteur-pdf .lpdf-bouton:hover { background: #6a6a6a; color: #fff; }
+.lecteur-pdf .lpdf-lecture, .lecteur-pdf .lpdf-lecture:hover { background: #b76533; min-width: 64px; }
+.lecteur-pdf.lpdf-en-cours .lpdf-lecture, .lecteur-pdf.lpdf-en-cours .lpdf-lecture:hover { background: #2e7d32; }
+.lecteur-pdf .lpdf-vitesse { min-width: 5.5em; text-align: center; font-variant-numeric: tabular-nums; cursor: pointer; }
+.lecteur-pdf .lpdf-retour { margin-left: auto; }
+.lecteur-pdf:fullscreen { height: 100vh; }
+body.lpdf-page { margin: 0; height: 100vh; height: 100dvh; background: #3a3a3a; }

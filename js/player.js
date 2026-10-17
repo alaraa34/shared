@@ -48,7 +48,14 @@ function jsPlayerAfficherIndice(songs,indice){
     
     //affichage du document
     song = songs[indice];
-    $('#lecteur').attr('src',song['lienPDF']);
+    //lecteur PDF à défilement (shared LecteurPdf) si présent, sinon ancienne iframe
+    const lecteurPdf = document.getElementById('lecteur') ? document.getElementById('lecteur').lecteurPdf : null;
+    if (lecteurPdf) {
+        lecteurPdf.charger(song['lienPDF'] ?? '', song['lienMP3'] ?? '');   //durée du défilement = durée du MP3
+    }
+    else {
+        $('#lecteur').attr('src',song['lienPDF']);
+    }
     if (song['lienPDF'] === null){
         $('#lecteur').hide();
         $('#message').show();

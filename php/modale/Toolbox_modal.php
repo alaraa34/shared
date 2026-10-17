@@ -149,10 +149,10 @@ class Toolbox_modal {
         if (isset($action['href'])){
             //exemple   <input type="button" onclick="window.location.href = 'https://www.w3docs.com';" value="w3docs" />
             //au clic envoi le code action et l'id en paramètre récupérés par la page index
-            //href sous la forma controleur;fonction;prefixe ex songEditer;song
+            //href sous la forme domaine[/controleur];fonction[;prefixe] ex song;editer ou song/repertoire;editer
             $tableau = TbAdressage::getControleurFonctionPrefixeFromCFPadress($action['href']);
             //appel avec fonction/ controleur
-            $url = TbAdressage::getURLstatic((string)$tableau['controleur'],(string)$tableau['prefixe'].ucfirst($tableau['fonction']),$id);
+            $url = TbAdressage::getURLstatic((string)$tableau['domaine'],(string)$tableau['prefixe'].ucfirst($tableau['fonction']),$id,(string)$tableau['controleur']);
             $myHtml = " onclick=\"window.location.href = '" . $url. "'\"";
         }
         return $myHtml;
@@ -163,7 +163,7 @@ class Toolbox_modal {
     //le paramètre modal est sous la orme controleur;fonction;prefixe
     //la fenetre a pour nom  prefixeMDLfonction 
         $tableauCFP = TbAdressage::getControleurFonctionPrefixeFromCFPadress($modale);
-        return [$tableauCFP['controleur'], $tableauCFP['prefixe']."MDL".$tableauCFP['fonction']];
+        return [$tableauCFP['domaine'], $tableauCFP['prefixe']."MDL".$tableauCFP['fonction']];
     }
     
     public static function modalGetNomDiv(string $modale):string{

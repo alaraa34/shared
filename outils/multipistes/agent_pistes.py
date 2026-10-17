@@ -87,7 +87,7 @@ class Agent:
 
     # ------------------------------------------------------------------ appels au site
     def _url(self, fonction):
-        return f"{self.url_projet}index.php?fct={fonction}&ctr=song"
+        return f"{self.url_projet}index.php?fct={fonction}&dom=song&ctr=multipiste"
 
     def _lire_reponse(self, requete, delai):
         # certains hébergeurs refusent l'identité par défaut de Python (Python-urllib)

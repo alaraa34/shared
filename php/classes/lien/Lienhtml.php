@@ -17,12 +17,25 @@ class Lienhtml
     
      public static function mettreEnFormeCollection(array $liens) {
     //transforme une collection de liens exprimés en tableau en texte html
+        $objets = [];
         foreach ($liens as $index=>$lien){
-            $lienObj = new Lien((int)$lien['id']);
-            $liens[$index] = $lienObj->genererLienHref();
-            unset ($lienObj);
+            $objets[$index] = new Lien((int)$lien['id']);
+        }
+        $urlAudio = self::urlAudio($objets);
+        foreach ($objets as $index=>$lienObj){
+            $liens[$index] = $lienObj->genererLienHref($urlAudio);
         }
         return $liens;
+    }
+    
+    public static function urlAudio(array $liens): string {
+    //MP3 de référence d'un objet (titre...) : le MP3 joué par le groupe s'il existe, sinon le MP3 original, sinon ""
+    //sa durée fixe le temps de défilement des PDF de l'objet (LecteurPdf)
+        $urls = [];
+        foreach ($liens as $lien){
+            $urls[$lien->typeLien->id] ??= $lien->url;
+        }
+        return $urls[TypeLien::MP3JOU] ?? $urls[TypeLien::MP3ORI] ?? "";
     }
     
     public  static function afficherLiensCellule(array $tableau, bool $afficherTD=true, bool $groupe = true) : string {
@@ -41,8 +54,9 @@ class Lienhtml
     public  static function afficherLiensCelluleObjet(array $liens, bool $afficherTD=true, bool $groupe = true) : string {
     //affiche tous les liens du même objet dans une seule cellule 
         $tableau = [];
+        $urlAudio = self::urlAudio($liens);
         foreach ($liens as $lien) {
-            $tableau []=  $lien->genererLienHref() ;
+            $tableau []=  $lien->genererLienHref($urlAudio) ;
         }
         return self::afficherLiensCellule($tableau,$afficherTD,$groupe);
     }

@@ -18,7 +18,8 @@ use shared\php\toolbox\Toolbox_liste         as TbListe;
 
 class MultipisteControle
 {
-    public const string CONTROLEUR = "song";
+    public const string DOMAINE = "song";
+    public const string CONTROLEUR = "multipiste";   //song/ctMultipiste.php dans chaque projet
 
     //------------------------------------------------------------------------------------------------
     //PAGE DE GENERATION
@@ -49,7 +50,7 @@ class MultipisteControle
             if (in_array($etat, [Multipiste::A_TRAITER, Multipiste::EN_COURS], true)) {$enAttente++;}
             if ($etat === Multipiste::A_TRAITER) {$aTraiter++;}
             if ($etat === Multipiste::EN_COURS) {$agentsEnCours[] = $etats[$idLien]['agent'];}
-            $urlDemande = TbAdressage::getURLstatic(self::CONTROLEUR, "pistesDemanderLien", $idLien);
+            $urlDemande = TbAdressage::getURLstatic(self::DOMAINE, "pistesDemanderLien", $idLien, self::CONTROLEUR);
             $colonne = (int)$ligne['idTypeLien'] === TypeLien::MP3JOU ? 'jou' : 'ori';
             $titres[$idSong][$colonne] .= Multipiste::iconeHtml(
                 ['url'=>(string)$ligne['url'], 'nomAffiche'=>(string)$ligne['nomAffiche'],
@@ -62,8 +63,8 @@ class MultipisteControle
             }
         }
         //choix de la liste : tous les titres ou seulement ceux à transposer
-        $urlTous = TbAdressage::getURLstatic(self::CONTROLEUR, "genererPistesLecteur");
-        $urlTransposer = TbAdressage::getURLstatic(self::CONTROLEUR, "genererPistesATransposer");
+        $urlTous = TbAdressage::getURLstatic(self::DOMAINE, "genererPistesLecteur", 0, self::CONTROLEUR);
+        $urlTransposer = TbAdressage::getURLstatic(self::DOMAINE, "genererPistesATransposer", 0, self::CONTROLEUR);
         $filtre = '<div class="btn-group btn-group-sm mb-2" role="group">'
                 . '<a href="' . $urlTous . '" class="btn btn-outline-primary' . ($aTransposerSeulement ? '' : ' active') . '">Tous les titres</a>'
                 . '<a href="' . $urlTransposer . '" class="btn btn-outline-primary' . ($aTransposerSeulement ? ' active' : '') . '">'
@@ -118,7 +119,7 @@ class MultipisteControle
         Multipiste::demander($idLien, $idDemandeur, $tona, $etat !== Multipiste::A_TRANSPOSER);
         $fonction = str_contains((string)filter_input(INPUT_SERVER, 'HTTP_REFERER'), 'genererPistesATransposer')
                   ? "genererPistesATransposer" : "genererPistesLecteur";
-        header('Location: ' . TbAdressage::getURLstatic(self::CONTROLEUR, $fonction));
+        header('Location: ' . TbAdressage::getURLstatic(self::DOMAINE, $fonction, 0, self::CONTROLEUR));
     }
 
     //------------------------------------------------------------------------------------------------

@@ -17,7 +17,8 @@ class Menu {
     private string $indentation="";
     private string $typeLigne="";
     private string $libelle="";
-    private string $action="";
+    private string $fonction="";
+    private string $domaine="";
     private string $controleur="";
     private bool $production=false;
     
@@ -25,8 +26,9 @@ class Menu {
     //Table
     private const string TABLE = PREFIXE_BDD. "menu";
     //constante paramètre de requete
-    public const FONCTION = "fct";
+    public const DOMAINE = "dom";
     public const CONTROLEUR = "ctr";
+    public const FONCTION = "fct";
     //Constantes
     public  const string SESSION_MENU = "MENU";
     private const string MENU = "menu";
@@ -70,11 +72,15 @@ class Menu {
         }
     }
     private function charger(array $tableau):void{
-        $this->action = $tableau['action'];
+        //colonne fonction (anciennement action), domaine et controleur (sans préfixe ct)
+        $this->fonction = (string)($tableau['fonction'] ?? $tableau['action'] ?? '');
         $this->typeLigne = $tableau['typeLigne'];
         $this->indentation = sprintf("%'.06d\n", $tableau['indentation']);
         $this->libelle = $tableau['libelle'];
-        $this->controleur = $tableau['domaine'];
+        $this->domaine = (string)$tableau['domaine'];
+        //controleur non renseigné : c'est le domaine
+        $this->controleur = (string)($tableau['controleur'] ?? '');
+        if (strlen($this->controleur)===0){$this->controleur = $this->domaine;}
         if ($tableau['production']===1){$this->production = true;}
     }
   
@@ -130,7 +136,7 @@ class Menu {
     }
    
     private function ligneExterne(){
-        $this->myhtml .= "<li><a class=\"dropdown-item\" href=\"" . $this->action . "\" target='_blank' rel='noopener'>". $this->libelle. "</a></li>";
+        $this->myhtml .= "<li><a class=\"dropdown-item\" href=\"" . $this->fonction . "\" target='_blank' rel='noopener'>". $this->libelle. "</a></li>";
     }
     
     private function testRuptureNiveau():bool{
@@ -145,10 +151,10 @@ class Menu {
     }
     
     private function formatterParametresURL():string{
-    // met en forme les paramètres action et ctrl
+    // met en forme les paramètres fct, dom et ctr
     // modele"http://www.votredomaine.com/?usertype=admin&program=kali%20linux&level=top%20secret"
     
-        return TbAdressage::getURLstatic($this->controleur,$this->action);
+        return TbAdressage::getURLstatic($this->domaine,$this->fonction,0,$this->controleur);
     }
             
     //************************************************************************************************
