@@ -47,6 +47,9 @@ final class Database
             \PDO::ATTR_ERRMODE          => \PDO::ERRMODE_EXCEPTION,
             \PDO::ATTR_EMULATE_PREPARES => false, // vraies requêtes préparées côté MySQL (perf + sécurité)
             \PDO::ATTR_PERSISTENT       => true,
+            //rowCount() = lignes trouvées par le WHERE (et non lignes réellement modifiées) : un UPDATE qui réécrit
+            //les mêmes valeurs (ex. seul le commentaire lié a changé) n'est plus vu comme un échec par Model::mdUpdate
+            \PDO::MYSQL_ATTR_FOUND_ROWS => true,
         ];
 
         try {
