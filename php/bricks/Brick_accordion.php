@@ -43,9 +43,11 @@ class Brick_accordion {
 
         return $myhtml;
     }
-    public static function accordion3ItemEntreTitreEtContenu(int $numero, $expanded = true){
+    public static function accordion3ItemEntreTitreEtContenu(int $numero, $expanded = true,
+                            bool $exclusif = false, string $identifiant = "accordionFlushExample"){
     // retourne la partie nécesaire pour la construction d'un accordiaon
-    //$collapse = false, l'accordeéon reste ouvert  des le départ   
+    //$expanded = true, l'accordéon est ouvert dès le départ
+    //$exclusif = true, ouvrir un item referme les autres (identifiant = celui passé à accordion1Debut)
 
         $myhtml = "</button></h2>";
         $myhtml .= "<div id=\"flush-collapse" . $numero . "\" " .
@@ -53,7 +55,7 @@ class Brick_accordion {
         if ($expanded){$myhtml.= "show";}
         $myhtml .=  " \" " .
                     "aria-labelledby=\"flush-heading" . $numero . "\" " ;
-                if ($expanded){$myhtml.= "data-bs-parent=\"#accordionFlushExample\"";}
+                if ($expanded || $exclusif){$myhtml.= "data-bs-parent=\"#" . $identifiant . "\"";}
         $myhtml .= "><div class=\"accordion-body\">";
         return $myhtml;
      }
@@ -67,6 +69,41 @@ class Brick_accordion {
      return "</div>";
     }
   
+    public static function premiereLettre(string $texte) :string{
+    //première lettre en majuscule sans accent, "#" si ce n'est pas une lettre (chiffre, symbole)
+        $lettre = mb_strtoupper(mb_substr(trim($texte), 0, 1, 'UTF-8'), 'UTF-8');
+        $lettre = self::sansAccent($lettre);
+        return preg_match('/^[A-Z]$/', $lettre) ? $lettre : '#';
+    }
+
+    private static function sansAccent(string $texte) :string{
+    //remplace les majuscules accentuées et les minuscules accentuées par leur lettre de base
+        $majuscules = ['À'=>'A','Â'=>'A','Ä'=>'A','Á'=>'A','Ã'=>'A','Ç'=>'C',
+                       'É'=>'E','È'=>'E','Ê'=>'E','Ë'=>'E','Î'=>'I','Ï'=>'I','Í'=>'I',
+                       'Ô'=>'O','Ö'=>'O','Ó'=>'O','Õ'=>'O','Ù'=>'U','Û'=>'U','Ü'=>'U','Ú'=>'U',
+                       'Ÿ'=>'Y','Ñ'=>'N','Œ'=>'O','Æ'=>'A'];
+        $minuscules = [];
+        foreach ($majuscules as $accent=>$base){$minuscules[mb_strtolower($accent, 'UTF-8')] = strtolower($base);}
+        return strtr($texte, $majuscules + $minuscules);
+    }
+
+    public static function grouperParLettre(array $infos, string $zone) :array{
+    //regroupe les lignes par première lettre de $zone, triées par $zone dans chaque groupe
+    //seules les lettres présentes sont retournées, "#" (chiffres, symboles) en premier
+    //retour : [['titre'=>'A', 'lignes'=>[...]], ...]
+        usort($infos, fn($a, $b) => strcasecmp(self::sansAccent(trim((string)$a[$zone])), self::sansAccent(trim((string)$b[$zone]))));
+        $parLettre = [];
+        foreach ($infos as $info){
+            $parLettre[self::premiereLettre((string)$info[$zone])][] = $info;
+        }
+        ksort($parLettre, SORT_STRING);
+        $groupes = [];
+        foreach ($parLettre as $lettre=>$lignes){
+            $groupes[] = ['titre'=>$lettre, 'lignes'=>$lignes];
+        }
+        return $groupes;
+    }
+
     public static function accordionAfficherComplet(array $infos,array $actions,
                             string $cleEntete="id",
                             string $cleDetail="id", 
