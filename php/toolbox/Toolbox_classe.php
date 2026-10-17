@@ -84,7 +84,7 @@ class Toolbox_classe {
         foreach($tableau as $nom=>$value){
             if ($nom=="id"){
                 //Alimentation id dans les formulaires est sous la forme idClasse, exemple idEtablissement
-                $classe->id = Toolbox_adressage::getPost("I", "id".ucfirst(self::classeGetInfos(get_class($classe))[1]));
+                $classe->id = Toolbox_adressage::getPost("I", "id".ucfirst(self::classeGetInfos(get_class($classe))['nom']));
             }
             //Chargement de la donnée si pas une classe, si pas une collection (tableau) 
             elseif (!is_null($value) && !is_array($value) && isset($classe->$nom)){
@@ -132,7 +132,7 @@ class Toolbox_classe {
         $collection=[];
         foreach($mouvements as $mouvement){
             $obj = new $classeTraitee();
-            self::classeLoadFromArray($obj, $mouvement, self::classeGetInfos($classeTraitee)[1]); //appel avec nom court de la classe traitée
+            self::classeLoadFromArray($obj, $mouvement, self::classeGetInfos($classeTraitee)['nom']); //appel avec nom court de la classe traitée
             //recherche du code action exemple actionLien
             switch ($mouvement['action'. self::classeGetAlias($obj)]) {
                 case 'C':
@@ -161,7 +161,7 @@ class Toolbox_classe {
     private static function classeGetInstanceClasseAssociative(object $classe, string $classeTraitee) :string{
     //classe traitée doit contenir l'adresse complète exemple shared\php\classes\lien\Lien ou nom seul
     //object $classeMere = instance classe propriétaire de la collection 
-        $nomCourtClasseCollection = self::classeGetInfos($classeTraitee)[1];
+        $nomCourtClasseCollection = self::classeGetInfos($classeTraitee)['nom'];
         $nomClasseAssociative = get_class($classe). $nomCourtClasseCollection . "_ass"; //nom avec namespace
         
         $retour = self::classeChargerSiExiste($nomClasseAssociative);
@@ -242,7 +242,7 @@ class Toolbox_classe {
         } 
         else{
             //nom complet de la classe instanciée dans la collection
-            $namespace = self::classeGetInfos(get_class($classe))[0]; //namespace de la classe
+            $namespace = self::classeGetInfos(get_class($classe))['namespace']; //namespace de la classe
             $nomClasseCollection = $namespace . "\\" . $nomCourtClasseCollection;  
             //Liste Id
             $listeId = $classe->mdInfosIdCollection($nomClasseCollection);
@@ -380,7 +380,7 @@ class Toolbox_classe {
             if(count($classe->$nom) > 0){
                 //test si collection interne (la clé est dans la table BDD de l'entité instanciée, exemple detailSetList liée à une seule setlist)
                 //ou associative (çà passe par une classe de type ass
-                $namespace = self::classeGetInfos(get_class($classe))[0];  //namespace de la classe qui possède la collection
+                $namespace = self::classeGetInfos(get_class($classe))['namespace'];  //namespace de la classe qui possède la collection
                 $nomClasseAssociative = $namespace . "\\" . self::classeGetAlias($classe). self::classeGetAlias($classe->$nom[0]). "_ass";
                 if (self::classeChargerSiExiste($nomClasseAssociative)){
                     //si la classe association existe, appel à la méthode associative
@@ -543,9 +543,9 @@ class Toolbox_classe {
             $alias = get_parent_class($classe);}
         else{
             $alias = get_class($classe);}
-        if ($nomCourt){$alias = self::classeGetInfos($alias)[1];}
+        if ($nomCourt){$alias = self::classeGetInfos($alias)['nom'];}
         //renvoi du nom de la classe
-        return self::classeGetInfos($alias)[1];
+        return self::classeGetInfos($alias)['nom'];
     }
     
     public static function classeAttributValorise($instance,string $attribut):bool{
@@ -590,7 +590,7 @@ class Toolbox_classe {
             $namespace = "";
         }
         //renvoi tableau avec les deux infos
-        return array($namespace,$nom);
+        return ['namespace'=>$namespace,'nom'=>$nom];
     }
    
     public static function classeGetClass(object $classe):string{
