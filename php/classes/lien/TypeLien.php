@@ -30,6 +30,7 @@ class TypeLien
     public const MP4 = 29;
     public const SITE = 4;
     public const PAD = 28;
+    public const SEQUENCE = 50;  //séquence de notes saisie avec l'éditeur (fichier .seq.json, voir Sequence)
        
     // Méthodes
     public function __construct($id=0) {

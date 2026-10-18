@@ -1,0 +1,27 @@
+/* Séquences de notes : éditeur (modale) et restitution (shared\php\classes\lien\Sequence, sequence.js) */
+.seq-barre-outils {display:flex; flex-wrap:wrap; gap:6px 14px; align-items:center; padding:6px;
+                   border:1px solid #dee2e6; border-radius:10px; background:#f8f9fa; margin-bottom:10px;}
+.seq-groupe {display:flex; gap:3px; align-items:center;}
+.seq-groupe + .seq-groupe {border-left:1px solid #ced4da; padding-left:14px;}
+.seq-outil {width:38px; height:38px; padding:0; display:inline-flex; align-items:center; justify-content:center;
+            font-size:18px; color:#212529; background:transparent; border:1px solid transparent; border-radius:6px; cursor:pointer;}
+.seq-outil:hover {background:#fff; border-color:#dee2e6;}
+.seq-outil.on {background:#cfe2ff; color:#084298; border-color:#9ec5fe;}
+.seq-outil svg {width:22px; height:22px; fill:none; stroke:currentColor;}
+.seq-tempo {width:80px;}
+.seq-zone {overflow-x:auto; border:1px solid #dee2e6; border-radius:10px; background:#fff; color:#212529;}
+.seq-zone .seq-svg {display:block; height:180px; cursor:crosshair;}
+.seq-noms {font-size:.95rem; margin:8px 0 0; min-height:1.4em;}
+.seq-erreur {color:#dc3545; font-size:.875rem; min-height:1.3em; margin:4px 0 0;}
+
+/* restitution */
+.sequence-vue {color:#212529; background:#fff; border:1px solid #dee2e6; border-radius:10px; padding:4px 8px; margin:6px 0;}
+.seq-vue-ligne {display:flex; align-items:center; gap:8px;}
+.sequence-vue .seq-svg {display:block; flex:1 1 auto; min-width:0; width:100%;}
+.seq-bouton {flex:0 0 auto; width:34px; height:34px; border:1px solid #ced4da; border-radius:6px; background:#fff; color:#212529; cursor:pointer;}
+.seq-bouton.on {background:#cfe2ff; color:#084298; border-color:#9ec5fe;}
+.seq-message {color:#dc3545; font-size:.875rem;}
+
+/* page autonome */
+body.seq-page {margin:0; padding:16px; font-family:system-ui, sans-serif; background:#f8f9fa;}
+body.seq-page h1 {font-size:1.25rem; font-weight:500; margin:0 0 10px;}

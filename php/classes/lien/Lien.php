@@ -173,7 +173,9 @@ class Lien
         //Affichage du tooltip
         $myhtml .= " title=\"" . $this->getTooltip() . "\" " ;
 
-        $myhtml .= " href=\"" . $this->url . "\" target='_blank' rel='noopener'>" ;
+        //séquence de notes : le lien ouvre la page qui dessine et joue la séquence (shared Sequence)
+        $href = Sequence::estSequence($this->url) ? Sequence::urlPage($this->url, $this->description) : $this->url;
+        $myhtml .= " href=\"" . htmlspecialchars($href, ENT_QUOTES, 'UTF-8') . "\" target='_blank' rel='noopener'>" ;
         
         //si texte c'est le texte qui est affiché, sinon par défaut c'est le lien en remplaçant les blancs par "_"
         $myhtml .= '<h6>&nbsp;' . $this->typeLien->icone . '&nbsp;</h6>';
@@ -195,7 +197,8 @@ class Lien
         //Affichage du tooltip
         $myhtml .= " title=\"" . $this->getTooltip() . "\" " ;
 
-        $myhtml .= " href=\"" . $this->url . "\" target='_blank' rel='noopener'>" ;
+        $href = Sequence::estSequence($this->url) ? Sequence::urlPage($this->url, $this->description) : $this->url;
+        $myhtml .= " href=\"" . htmlspecialchars($href, ENT_QUOTES, 'UTF-8') . "\" target='_blank' rel='noopener'>" ;
         //si texte c'est le texte qui est affiché, sinon par défaut c'est le lien en remplaçant les blancs par "_"
         $myhtml .= $this->url;
 

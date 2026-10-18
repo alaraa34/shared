@@ -61,7 +61,8 @@ INSERT INTO `sh_lien_type` (`id`, `nom`, `nomAffiche`, `nomLong`, `externe`, `re
 (21, 'Autre', 'autre docu', '', 0, 'autres', 'texteAUTRE', '.pdf ,.txt', '<i class=\"bi bi-file-earmark-pdf\"></i>'),
 (28, 'PAD', 'pad', '', 0, 'pad', 'textePAD', 'mp3 audio/mpeg', '<i class=\"bi bi-volume-up-fill\"></i>'),
 (29, 'Vidéo', 'vidéo', '', 0, 'video', 'texteVIDEO', 'video/mpeg,video/mp4,video/mkv,video/webm', '<i class=\"fa-solid fa-video\"></i>'),
-(49, 'Choeurs', 'choeurs', '', 0, 'choeurs', 'texteCHOEURS', 'application/pdf', '<i class=\"bi bi-file-earmark-pdf\"></i>');
+(49, 'Choeurs', 'choeurs', '', 0, 'choeurs', 'texteCHOEURS', 'application/pdf', '<i class=\"bi bi-file-earmark-pdf\"></i>'),
+(50, 'Séquence', 'séquence', 'séquence de notes saisie dans l''éditeur', 0, 'sequence', 'textePARTITION', '.json application/json', '<i class=\"bi bi-music-note-beamed\"></i>');
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
