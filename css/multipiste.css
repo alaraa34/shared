@@ -10,6 +10,7 @@
 .mp-deplier[aria-expanded="true"] { color: var(--bs-primary); }
 .mp-pistes { display: flex; flex-wrap: wrap; gap: .2rem .8rem; font-size: .85rem; padding: .3rem .2rem 0; }
 .mp-piste { display: inline-flex; align-items: center; gap: .3rem; cursor: pointer; white-space: nowrap; }
+.mp-piste-tout { font-weight: 600; padding-right: .6rem; border-right: 1px solid var(--bs-border-color); }
 .mp-avertissement { font-size: .75rem; color: var(--bs-warning-text-emphasis); }
 /* pas de MP3 pour le choix fait : lecteur rouge avec étiquette */
 .mp-absent .mp-barre, .mp-erreur .mp-barre { border: 1px solid var(--bs-danger); border-radius: .375rem;

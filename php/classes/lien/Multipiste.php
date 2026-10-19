@@ -244,6 +244,8 @@ class Multipiste
         $html .= '</div>';
         if ($source['mode'] === 'pistes') {
             $html .= '<div class="mp-pistes" hidden>';
+            //« Tout » : recoche (ou décoche) toutes les pistes d'un coup ; reflète l'état des autres cases
+            $html .= '<label class="mp-piste mp-piste-tout"><input type="checkbox" class="form-check-input mp-tout" checked> Tout</label>';
             foreach (self::PISTES as $code => $libelle) {
                 $html .= '<label class="mp-piste"><input type="checkbox" class="form-check-input" value="' . $code . '" checked> '
                        . $libelle . '</label>';

@@ -26,6 +26,22 @@
         return minutes + ":" + String(secondes).padStart(2, "0");
     }
 
+    function appliquerPistes(el, etat) {
+        // son coupé pour les pistes décochées
+        if (!etat) { return; }
+        for (const audio of etat.audios) { audio.muted = !pisteCochee(el, audio.dataset.code); }
+    }
+
+    function majTout(el) {
+        // case « Tout » : cochée si toutes les pistes disponibles le sont, à moitié (tiret) si seulement certaines
+        const tout = el.querySelector(".mp-pistes .mp-tout");
+        if (!tout) { return; }
+        const cases = Array.from(el.querySelectorAll(".mp-pistes input:not(.mp-tout)")).filter(c => !c.disabled);
+        const cochees = cases.filter(c => c.checked).length;
+        tout.checked = cases.length > 0 && cochees === cases.length;
+        tout.indeterminate = cochees > 0 && cochees < cases.length;
+    }
+
     function pisteCochee(el, code) {
         const caseACocher = el.querySelector('.mp-pistes input[value="' + code + '"]');
         return caseACocher ? caseACocher.checked : true;
@@ -149,7 +165,7 @@
         etat.audios = etat.audios.filter(a => a !== audio);
         etat.attente.delete(audio);
         const caseACocher = etat.el.querySelector('.mp-pistes input[value="' + audio.dataset.code + '"]');
-        if (caseACocher) { caseACocher.checked = false; caseACocher.disabled = true; }
+        if (caseACocher) { caseACocher.checked = false; caseACocher.disabled = true; majTout(etat.el); }
         if (etat.audios.length === 0) {
             arreter(etat, false);
             etat.el.classList.add("mp-erreur");
@@ -224,10 +240,17 @@
         if (cible.matches(".mp-position")) {
             if (etat) { etat.deplacement = false; deplacer(etat, Number(cible.value)); }
         }
-        else if (cible.matches(".mp-pistes input") && etat) {
-            for (const audio of etat.audios) {
-                if (audio.dataset.code === cible.value) { audio.muted = !cible.checked; }
+        else if (cible.matches(".mp-pistes .mp-tout")) {
+            // « Tout » : toutes les pistes disponibles prennent son état
+            for (const caseACocher of el.querySelectorAll(".mp-pistes input:not(.mp-tout)")) {
+                if (!caseACocher.disabled) { caseACocher.checked = cible.checked; }
             }
+            cible.indeterminate = false;
+            appliquerPistes(el, etat);
+        }
+        else if (cible.matches(".mp-pistes input")) {
+            appliquerPistes(el, etat);
+            majTout(el);
         }
     });
 
