@@ -79,6 +79,7 @@ class Toolbox_html {
     public static function htmlMenuActions(array $actions, string $titre = "Actions", string $couleur = "text-secondary"):string{
     //bouton rond "3 points" ouvrant un menu d'actions aligné à droite (dropdown Bootstrap 5)
     //$actions : [['texte'=>'Clore', 'href'=>'index.php?...', 'icone'=>'bi bi-check2-circle'], ...] (icone facultative)
+    //           'nouvelOnglet'=>true (facultatif) : le lien s'ouvre dans un nouvel onglet
     //placé dans un conteneur d-flex, la classe ms-auto le pousse à droite
         $html = '<div class="dropdown ms-auto">
                     <button type="button" class="btn btn-light border rounded-circle d-inline-flex align-items-center justify-content-center p-0 ' . $couleur . '"
@@ -90,7 +91,8 @@ class Toolbox_html {
                         <li><h6 class="dropdown-header">' . htmlspecialchars($titre) . '</h6></li>';
         foreach ($actions as $action){
             $icone = isset($action['icone']) ? '<i class="' . $action['icone'] . ' me-2"></i>' : '';
-            $html .= '<li><a class="dropdown-item" href="' . htmlspecialchars($action['href']) . '">' . $icone . htmlspecialchars($action['texte']) . '</a></li>';
+            $cible = empty($action['nouvelOnglet']) ? '' : ' target="_blank" rel="noopener"';
+            $html .= '<li><a class="dropdown-item" href="' . htmlspecialchars($action['href']) . '"' . $cible . '>' . $icone . htmlspecialchars($action['texte']) . '</a></li>';
         }
         return $html . '</ul></div>';
     }
