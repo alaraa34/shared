@@ -176,10 +176,10 @@ class User extends Mere{
     //************************************************************************************************      
  
     private function rechercheUsr() :array{
-        //Retourne le détail d'un user à partir de son pseudo (le mot de passe est vérifié en PHP)
+        //Retourne le détail d'un user actif à partir de son pseudo (le mot de passe est vérifié en PHP) : un user inactif ne peut pas se connecter
         $requete = "SELECT id,abrev,pseudo,password,nom,prenom,avatar,administrateur
                      FROM " . self::TABLE . " as user 
-                     WHERE pseudo = ?;";
+                     WHERE pseudo = ? AND actif = 1;";
          return Model::mdRequeteListerUnique($requete ,[$this->pseudo]);
     }
 }
