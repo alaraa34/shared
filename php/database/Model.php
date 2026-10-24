@@ -13,11 +13,13 @@ class Model {
     
     public const string SYMBOLE_POINT = "ZZZ";
  
-    public static function mdDelete(string $table, array $zones) {
+    public static function mdDelete(string $table, array $zonesClauseWhere=[]) {
     //Traitement spécial si suppression sur ID
     //Exemple mdDelete("etablissement_contact", ['id'=>$contact['idContact']]);
-        $requete = "DELETE FROM " . $table . self::mdClauseWhere($zones) . " ;";
-        return self::mdRequeteExecuter($requete,$zones);
+        $requete = "DELETE FROM " . $table;
+        $requete .= $zonesClauseWhere ? self::mdClauseWhere($zonesClauseWhere) : "" ;
+        $requete.= " ;";
+        return self::mdRequeteExecuter($requete,$zonesClauseWhere);
     }
     
     public static function mdDeleteAvecClauseWhere(string $table, string $clauseWhere) {

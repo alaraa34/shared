@@ -12,7 +12,7 @@ final class Database
     /** Connexion \PDO mise en cache pour la durée de la requête (évite les reconnexions répétées). */
     private static ?\PDO $pdo = null;
     public const string SESSION_ENVIR = "ENVIR";
-    
+    //structure fichier envir nombdd;hostbdd;port/user/pwd
     public const int ENVIR_DB = 0;
     public const int ENVIR_DB_HOST = 1;
     public const int ENVIR_PORT = 2;

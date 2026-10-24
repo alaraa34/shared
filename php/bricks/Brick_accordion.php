@@ -111,7 +111,14 @@ class Brick_accordion {
     /**
      * affiche un accordeon complet 
      * le tableau d'info doit comporter les infos de chanque enteête + un poste détail
-     */
+     * exemple [1] zones pour ecrire entete [detail][0]zones detail[1] zones detail
+     * les cles permettrent l'unicité des zones concernées
+     * exemple $grilles = Jeu::listeAffichage();
+        foreach ($grilles as $index=>$grille) {
+            //complément des enregistrements détail
+            $grilles[$index]['detail'] = Jeu::listeAffichageDetail($grille['sequence']);
+        }
+     ***************************************************************************/
         ob_start();
         $numero = 0;
         echo (self::accordion1Debut());
@@ -136,6 +143,29 @@ class Brick_accordion {
 
         //ajout des div modales standard et spécifique
         echo TbModal::afficherListeDivModales($actions);
+
+        return ob_get_clean(); 
+    }
+    public static function accordionAfficherCompletSimple(int $numero,string $entete,string $detail,bool $expandAccordeon= false):string{
+    /***************************************************************************
+     * affiche un accordeon complet de manière smplifiés, sans action
+     * $entete contient le html pour affichée la partie visible
+     * $detail la partie qui peut se cacher
+     * $numero permet de pouvoir les déplier /plier de manière indépendante, il faut qu'il soit unique
+     ***************************************************************************/
+        ob_start();
+        echo (self::accordion1Debut());
+        //entete
+        echo(self::accordion2ItemAvantTitre($numero));
+        //liste pour chaque entête d'accordéon
+        echo ( $entete);
+        echo(self::accordion3ItemEntreTitreEtContenu($numero,$expandAccordeon));
+        //détail à déplier de chaque accordéeon
+        echo( $detail);
+        //<!-- fin pavé d'accordéon-->
+        echo(self::accordion4ItemApresContenu());
+        //fin accordéeon
+        echo (self::accordion5Fin());
 
         return ob_get_clean(); 
     }
