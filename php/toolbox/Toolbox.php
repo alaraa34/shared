@@ -190,6 +190,17 @@ class Toolbox {
         }
         return $xs;
     }
+    
+    public static function tableauEnleverDoublons(array $tableau,int $flag=SORT_STRING):array{
+    //renvoie un tableau sans doublons
+    //$flag SORT_NUMERIC ou SORT_STRING 
+        if ($tableau){
+            return \array_values(\array_unique($tableau,$flag));
+        }
+        else{
+            return $tableau;
+        }
+    }
     //==============================================================================
     //                   MESSAGES AFFICHES 
     //==============================================================================
